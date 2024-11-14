@@ -1,0 +1,20 @@
+volumes:
+  user-data:
+
+services:
+  chrome:
+    image: chrome
+    build:
+      dockerfile: docker/Dockerfile
+      context: ./
+    volumes:
+      - /tmp/.X11-unix:/tmp/.X11-unix
+      - ./d_sign_client:/app/d_sign_client:ro
+      - ./docker/entrypoint.sh:/entrypoint.sh:ro
+      - user-data:/var/tmp/user-data
+    environment:
+      - DISPLAY=:0
+      - CHROME_USER_DATA=/var/tmp/user-data
+    network_mode: host
+    security_opt:
+      - seccomp:unconfined

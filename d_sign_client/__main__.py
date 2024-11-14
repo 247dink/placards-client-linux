@@ -1,3 +1,4 @@
+import os
 import logging
 import asyncio
 
@@ -9,22 +10,26 @@ from d_sign_client import DSignClient
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
-SERVER_URL = 'https://www.247dink.com'
+SERVER_URL = 'http://localhost:8000/'
+
+CHROME_USER_DATA = os.getenv('CHROME_USER_DATA', '/tmp')
 
 
 async def chrome():
     browser = await launch(
         headless=False,
         args=[
+            #'--no-sandbox',
             '--start-maximized',
             '--start-fullscreen',
             '--no-default-browser-check',
         ],
         ignoreDefaultArgs=["--enable-automation"],
+        #dumpio=True,
         executablePath='/usr/bin/google-chrome',
-        userDataDir='/home/btimby/.local/share/pyppeteer/.dev_profile/tmpo2vx5cr7',
+        userDataDir=CHROME_USER_DATA,
         defaultViewport=None,
-        autoClose=True,
+        autoClose=False,
     )
     pages = await browser.pages()
     if len(pages):
@@ -44,17 +49,15 @@ async def goto(page, url):
 
 
 async def main():
-    client = DSignClient()
-    playlist = client.playlist()
     browser, page = await chrome()
 
-    async for url, delay in client.playlist():
-        LOGGER.debug('Showing %s for %i seconds', url, delay)
-        await goto(page, url)
-        await asyncio.sleep(delay)
+    LOGGER.debug('Loading web client...')
+    await goto(page, SERVER_URL)
+
+    while not page.isClosed():
+        await asyncio.sleep(0.1)
 
     await browser.close()
 
 
-loop = asyncio.get_event_loop()
-loop.run_until_complete(main())
+asyncio.run(main())
