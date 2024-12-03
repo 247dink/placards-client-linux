@@ -9,16 +9,22 @@ CONFIG_MODULE = 'd_sign_client.config'
 
 
 class ConfigTestCase(TestCase):
+    def setUp(self):
+        super().setUp()
+        self.mod = importlib.import_module(CONFIG_MODULE)
+
     def test_config(self):
-        mod = importlib.import_module(CONFIG_MODULE)
-        self.assertEqual(mod.SERVER_URL, 'http://10.0.2.2:8000/')
+        self.assertEqual(self.mod.SERVER_URL, 'http://10.0.2.2:8000/')
 
     def test_missing(self):
-        mod = importlib.import_module(CONFIG_MODULE)
         with self.assertRaises(ConfigError):
-            mod.FOOBAR
+            self.mod.FOOBAR
 
     def test_protected(self):
-        mod = importlib.import_module(CONFIG_MODULE)
         with self.assertRaises(AttributeError):
-            mod._CONFIG
+            self.mod._CONFIG
+
+    def test_get(self):
+        self.assertIsNone(self.mod.get('MISSING', None))
+        with self.assertRaises(ConfigError):
+            self.mod.get('MISSING')

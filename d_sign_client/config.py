@@ -12,6 +12,7 @@ _DIRS = [
     './', '~/.placard/', '/etc/placard/',
 ]
 _SECTION = 'placard'
+_SENTINAL = object()
 
 
 def _read_config(paths=None):
@@ -50,6 +51,15 @@ class _ConfigModule(ModuleType):
 
         setattr(self, name, value)
         return value
+
+    def get(self, name, default=_SENTINAL):
+        try:
+            return getattr(self, name)
+
+        except ConfigError as e:
+            if default is _SENTINAL:
+                raise
+            return default
 
 
 sys.modules[__name__].__class__ = _ConfigModule
