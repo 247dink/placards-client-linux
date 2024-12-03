@@ -28,3 +28,15 @@ class ConfigTestCase(TestCase):
         self.assertIsNone(self.mod.get('MISSING', None))
         with self.assertRaises(ConfigError):
             self.mod.get('MISSING')
+
+    def test_int(self):
+        self.assertEqual(1, self.mod.getint('test_int'))
+        self.assertEqual(1, self.mod.getint('test_float'))
+
+    def test_float(self):
+        self.assertEqual(1.0, self.mod.getfloat('test_float'))
+
+    def test_bool(self):
+        self.assertTrue(self.mod.getbool('test_int'))
+        self.assertTrue(self.mod.getbool('test_bool_on'))
+        self.assertFalse(self.mod.getbool('test_bool'))

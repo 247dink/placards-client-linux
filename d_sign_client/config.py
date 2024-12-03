@@ -15,6 +15,10 @@ _SECTION = 'placard'
 _SENTINAL = object()
 
 
+def _to_bool(s):
+    return s.lower() in ['1', 'yes', 'on', 'true']
+
+
 def _read_config(paths=None):
     if paths is None:
         paths = [
@@ -60,6 +64,15 @@ class _ConfigModule(ModuleType):
             if default is _SENTINAL:
                 raise
             return default
+
+    def getint(self, name, default=_SENTINAL):
+        return int(self.getfloat(name, default))
+
+    def getfloat(self, name, default=_SENTINAL):
+        return float(self.get(name, default))
+
+    def getbool(self, name, default=_SENTINAL):
+        return _to_bool(self.get(name, default))
 
 
 sys.modules[__name__].__class__ = _ConfigModule
