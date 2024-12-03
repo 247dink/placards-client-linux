@@ -1,2 +1,2 @@
-# d-sign-client-linux
-D-sign client for Linux (Python)
+# Placard
+Placard digital sign client for Linux.

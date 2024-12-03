@@ -2,10 +2,10 @@ import importlib
 
 from unittest import TestCase
 
-from d_sign_client.errors import ConfigError
+from placard.errors import ConfigError
 
 
-CONFIG_MODULE = 'd_sign_client.config'
+CONFIG_MODULE = 'placard.config'
 
 
 class ConfigTestCase(TestCase):

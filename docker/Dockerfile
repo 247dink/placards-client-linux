@@ -2,7 +2,7 @@ FROM ubuntu:oracular
 
 ENV PIP_BREAK_SYSTEM_PACKAGES=1
 
-ADD d_sign_client /app/d_sign_client
+ADD placard /app/placard
 ADD Pipfile Pipfile.lock /app/
 ADD docker/entrypoint.sh /entrypoint.sh
 RUN chmod +x /entrypoint.sh

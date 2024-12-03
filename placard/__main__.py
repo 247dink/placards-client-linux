@@ -5,8 +5,8 @@ import asyncio
 import pyppeteer
 from pyppeteer import launch
 
-from d_sign_client import config
-from d_sign_client.errors import ConfigError
+from placard import config
+from placard.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)

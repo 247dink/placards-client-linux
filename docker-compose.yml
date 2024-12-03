@@ -9,7 +9,7 @@ services:
       context: ./
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./d_sign_client:/app/d_sign_client:ro
+      - ./placard:/app/placard:ro
       - ./docker/entrypoint.sh:/entrypoint.sh:ro
       - user-data:/var/tmp/user-data
     environment:

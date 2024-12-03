@@ -4,7 +4,7 @@ import configparser
 from os.path import isfile, expanduser, join as pathjoin
 from types import ModuleType
 
-from d_sign_client.errors import ConfigError
+from placard.errors import ConfigError
 
 
 _NAME = 'placard.ini'
