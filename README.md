@@ -1,2 +1,2 @@
-# Placard
-Placard digital sign client for Linux.
+# Placards Linux Client
+Placards digital sign client for Linux.
