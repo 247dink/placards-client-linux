@@ -6,6 +6,7 @@ import pyppeteer
 from pyppeteer import launch
 
 from d_sign_client import config
+from d_sign_client.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -49,10 +50,17 @@ async def goto(page, url):
 
 
 async def main():
-    browser, page = await chrome()
-
     LOGGER.debug('Loading web client...')
-    await goto(page, config.SERVER_URL)
+
+    try:
+        url = config.SERVER_URL
+
+    except ConfigError as e:
+        LOGGER.error('You must configure SERVER_URL in placard.ini!')
+        return
+
+    browser, page = await chrome()
+    await goto(page, url)
 
     while not page.isClosed():
         await asyncio.sleep(0.1)

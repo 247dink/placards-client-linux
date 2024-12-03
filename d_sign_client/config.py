@@ -2,34 +2,54 @@ import sys
 import configparser
 
 from os.path import isfile, expanduser, join as pathjoin
+from types import ModuleType
+
+from d_sign_client.errors import ConfigError
 
 
-CONFIG_NAME = 'placard.ini'
-CONFIG_DIRS = [
+_NAME = 'placard.ini'
+_DIRS = [
     './', '~/.placard/', '/etc/placard/',
 ]
-CONFIG_SECTION = 'placard'
+_SECTION = 'placard'
 
 
-def _config_paths():
-    for dir in CONFIG_DIRS:
-        path = expanduser(pathjoin(dir, CONFIG_NAME))
-        if not isfile(path):
-            continue
-        yield path
-
-
-def _read_config(paths):
+def _read_config(paths=None):
+    if paths is None:
+        paths = [
+            expanduser(pathjoin(dir, _NAME)) for dir in _DIRS
+        ]
     parser = configparser.ConfigParser()
     parser.read(paths)
     return parser
 
 
-def _load_config():
-    config = _read_config(_config_paths())
-    for opt, value in config.items(CONFIG_SECTION):
-        opt_upper = opt.upper()
-        setattr(sys.modules[__name__], opt_upper, value)
+class _ConfigModule(ModuleType):
+    _config = None
+
+    def __getattribute__(self, name):
+        if name.startswith('_'):
+            raise AttributeError(name)
+
+        try:
+            return object.__getattribute__(self, name)
+
+        except AttributeError:
+            pass
+
+        config = object.__getattribute__(self, '_config')
+        if config is None:
+            config = _read_config()
+            setattr(self, '_config', config)
+
+        try:
+            value = config.get(_SECTION, name)
+
+        except configparser.NoOptionError:
+            raise ConfigError(name)
+
+        setattr(self, name, value)
+        return value
 
 
-_load_config()
+sys.modules[__name__].__class__ = _ConfigModule
