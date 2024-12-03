@@ -5,7 +5,7 @@ import asyncio
 import pyppeteer
 from pyppeteer import launch
 
-from d_sign_client import DSignClient
+from d_sign_client import config
 
 
 LOGGER = logging.getLogger(__name__)
@@ -52,7 +52,7 @@ async def main():
     browser, page = await chrome()
 
     LOGGER.debug('Loading web client...')
-    await goto(page, SERVER_URL)
+    await goto(page, config.SERVER_URL)
 
     while not page.isClosed():
         await asyncio.sleep(0.1)

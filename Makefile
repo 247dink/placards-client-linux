@@ -17,3 +17,7 @@ run:
 		   --network host \
 		   --security-opt seccomp=unconfined \
 		   -e DISPLAY=${DISPLAY} d-sign-client
+
+
+test:
+	pipenv run python3 -m unittest tests/*
