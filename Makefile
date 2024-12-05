@@ -1,4 +1,5 @@
 DOCKER_COMPOSE=docker compose
+XAUTH_COOKIE := $(shell xauth list | head -n 1 | awk ' { print $$3 } ')
 
 
 build:
@@ -8,7 +9,7 @@ build:
 # --security-opt seccomp=unconfined
 # --security-opt seccomp=chrome.json
 run:
-	${DOCKER_COMPOSE} up
+	XAUTH_COOKIE=${XAUTH_COOKIE} ${DOCKER_COMPOSE} up
 
 #	docker run -ti \
 		   -v /tmp/.X11-unix:/tmp/.X11-unix \
