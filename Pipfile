@@ -5,9 +5,10 @@ name = "pypi"
 
 [packages]
 pyppeteer = "*"
-aiohttp = "*"
 
 [dev-packages]
+flake8 = "*"
+build = "*"
 
 [requires]
 python_version = "3.10"

@@ -2,6 +2,11 @@ DOCKER_COMPOSE=docker compose
 XAUTH_COOKIE := $(shell xauth list | head -n 1 | awk ' { print $$3 } ')
 
 
+.venv: Pipfile.lock
+	PIPENV_VENV_IN_PROJECT=1 pipenv install --dev
+	touch .venv
+
+
 build:
 	${DOCKER_COMPOSE} build
 
@@ -19,6 +24,20 @@ run:
 		   --security-opt seccomp=unconfined \
 		   -e DISPLAY=${DISPLAY} d-sign-client
 
+package: .venv
+	pipenv run python3 -m build
 
-test:
+
+lint: .venv
+	pipenv run flake8 placard
+
+
+test: .venv
 	pipenv run python3 -m unittest tests/*
+
+
+ci: test lint
+
+
+clean:
+	rm -rf *.egg-info dist build
