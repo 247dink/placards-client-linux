@@ -1,17 +1,17 @@
 import sys
 import configparser
 
-from os.path import isfile, expanduser, join as pathjoin
+from os.path import expanduser, join as pathjoin
 from types import ModuleType
 
-from placard.errors import ConfigError
+from placards.errors import ConfigError
 
 
-_NAME = 'placard.ini'
+_NAME = 'placards.ini'
 _DIRS = [
-    './', '~/.placard/', '/etc/placard/',
+    './', '~/.placards/', '/etc/placards/',
 ]
-_SECTION = 'placard'
+_SECTION = 'placards'
 _SENTINAL = object()
 
 
@@ -60,7 +60,7 @@ class _ConfigModule(ModuleType):
         try:
             return getattr(self, name)
 
-        except ConfigError as e:
+        except ConfigError:
             if default is _SENTINAL:
                 raise
             return default

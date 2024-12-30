@@ -2,11 +2,10 @@ import os
 import logging
 import asyncio
 
-import pyppeteer
 from pyppeteer import launch
 
-from placard import config
-from placard.errors import ConfigError
+from placards import config
+from placards.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)
@@ -20,13 +19,13 @@ async def chrome():
     browser = await launch(
         headless=False,
         args=[
-            #'--no-sandbox',
+            # '--no-sandbox',
             '--start-maximized',
             '--start-fullscreen',
             '--no-default-browser-check',
         ],
         ignoreDefaultArgs=["--enable-automation"],
-        #dumpio=True,
+        # dumpio=True,
         executablePath='/usr/bin/google-chrome',
         userDataDir=CHROME_USER_DATA,
         defaultViewport=None,
@@ -43,7 +42,7 @@ async def chrome():
 async def goto(page, url):
     page.setDefaultNavigationTimeout(0)
     await page.goto(url, waitUntil='networkidle2')
-    #await page.keyboard.press('F11')
+    # await page.keyboard.press('F11')
     await page.screenshot({
         'type': 'png',
     })
@@ -55,7 +54,7 @@ async def main():
     try:
         url = config.SERVER_URL
 
-    except ConfigError as e:
+    except ConfigError:
         LOGGER.error('You must configure SERVER_URL in placard.ini!')
         return
 

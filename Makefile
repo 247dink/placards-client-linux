@@ -33,8 +33,12 @@ package: .venv
 	pipenv run python3 -m build --wheel
 
 
+publish: .venv
+	pipenv run twine upload dist/*
+
+
 lint: .venv
-	pipenv run flake8 placard
+	pipenv run flake8 placards
 
 
 test: .venv
