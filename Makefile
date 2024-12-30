@@ -34,7 +34,7 @@ package: .venv
 
 
 lint: .venv
-	pipenv run flake8 placard
+	pipenv run flake8 placards
 
 
 test: .venv

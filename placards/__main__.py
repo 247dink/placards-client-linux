@@ -5,8 +5,8 @@ import asyncio
 import pyppeteer
 from pyppeteer import launch
 
-from placard import config
-from placard.errors import ConfigError
+from placards import config
+from placards.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)

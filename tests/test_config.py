@@ -2,10 +2,10 @@ import importlib
 
 from unittest import TestCase
 
-from placard.errors import ConfigError
+from placards.errors import ConfigError
 
 
-CONFIG_MODULE = 'placard.config'
+CONFIG_MODULE = 'placards.config'
 
 
 class ConfigTestCase(TestCase):
@@ -14,7 +14,7 @@ class ConfigTestCase(TestCase):
         self.mod = importlib.import_module(CONFIG_MODULE)
 
     def test_config(self):
-        self.assertEqual(self.mod.SERVER_URL, 'http://10.0.2.2:8000/')
+        self.assertEqual(self.mod.SERVER_URL, 'https://fishers.facman.site/')
 
     def test_missing(self):
         with self.assertRaises(ConfigError):
