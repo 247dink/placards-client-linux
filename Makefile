@@ -26,7 +26,7 @@ run:
 
 
 bump: .venv
-	pipenv run bumpversion revision
+	pipenv run bumpversion patch
 
 
 package: .venv
