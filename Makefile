@@ -30,7 +30,7 @@ bump: .venv
 
 
 package: .venv
-	pipenv run python3 -m build
+	pipenv run python3 -m build --wheel
 
 
 lint: .venv
