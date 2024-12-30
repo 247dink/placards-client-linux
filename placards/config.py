@@ -1,7 +1,7 @@
 import sys
 import configparser
 
-from os.path import isfile, expanduser, join as pathjoin
+from os.path import expanduser, join as pathjoin
 from types import ModuleType
 
 from placards.errors import ConfigError
@@ -60,7 +60,7 @@ class _ConfigModule(ModuleType):
         try:
             return getattr(self, name)
 
-        except ConfigError as e:
+        except ConfigError:
             if default is _SENTINAL:
                 raise
             return default

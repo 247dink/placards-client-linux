@@ -10,6 +10,7 @@ pyppeteer = "*"
 flake8 = "*"
 build = "*"
 bump2version = "*"
+twine = "*"
 
 [requires]
 python_version = "3"

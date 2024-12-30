@@ -84,3 +84,8 @@ jobs:
           body: ${{ github.event.pull_request.title }}
           token: ${{ secrets.PERSONAL_TOKEN }}
           artifacts: dist/placards-${{ steps.get-version.outputs.current_version }}-py3-none-any.whl
+
+      - name: Publise
+        env:
+          TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
+        run: make publish
