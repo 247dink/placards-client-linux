@@ -85,7 +85,7 @@ jobs:
           token: ${{ secrets.PERSONAL_TOKEN }}
           artifacts: dist/placards-${{ steps.get-version.outputs.current_version }}-py3-none-any.whl
 
-      - name: Publise
+      - name: Publish
         env:
           TWINE_PASSWORD: ${{ secrets.PYPI_TOKEN }}
         run: make publish
