@@ -24,6 +24,11 @@ run:
 		   --security-opt seccomp=unconfined \
 		   -e DISPLAY=${DISPLAY} d-sign-client
 
+
+bump: .venv
+	pipenv run bumpversion minor
+
+
 package: .venv
 	pipenv run python3 -m build
 

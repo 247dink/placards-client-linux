@@ -1,11 +1,11 @@
 from setuptools import setup
 
-from placards.__version__ import VERSION
+from placards.__version__ import __version__
 
 
 setup(
     name='placards',
-    version=VERSION,
+    version=__version__,
     author='Ben Timby',
     author_email='btimby@gmail.com',
     description='A placards digital signage client for Linux in Python',

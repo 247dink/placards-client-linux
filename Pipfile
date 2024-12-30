@@ -9,6 +9,7 @@ pyppeteer = "*"
 [dev-packages]
 flake8 = "*"
 build = "*"
+bump2version = "*"
 
 [requires]
 python_version = "3.10"
