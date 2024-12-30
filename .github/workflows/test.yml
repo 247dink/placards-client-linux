@@ -24,7 +24,7 @@ jobs:
           token: ${{ secrets.PERSONAL_TOKEN }}
 
       - name: Install pipenv
-        run: apt install -y pipenv
+        run: sudo apt install -y pipenv
 
       - name: Lint
         run: make lint
@@ -49,6 +49,9 @@ jobs:
         run: |
           git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
           git config user.name "${GITHUB_ACTOR}"
+
+      - name: Install pipenv
+        run: sudo apt install -y pipenv
 
       - name: Increment version
         run: make bump
