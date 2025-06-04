@@ -66,9 +66,7 @@ jobs:
       - name: Git checkin
         env:
           VERSION: ${{ steps.get-version.outputs.current_version }}
-        run: |
-          git commit -am "v${VERSION}"
-          git tag "v${VERSION}"
+        run: git commit -am "v${VERSION}"
 
       - name: Git push
         uses: ad-m/github-push-action@master
