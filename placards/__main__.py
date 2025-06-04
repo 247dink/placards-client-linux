@@ -10,12 +10,9 @@ from placards.errors import ConfigError
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.StreamHandler())
-SERVER_URL = 'http://localhost:8000/'
-
-CHROME_USER_DATA = os.getenv('CHROME_USER_DATA', '/tmp')
 
 
-async def chrome():
+async def chrome(chrome_bin, profile_dir):
     browser = await launch(
         headless=False,
         args=[
@@ -26,8 +23,8 @@ async def chrome():
         ],
         ignoreDefaultArgs=["--enable-automation"],
         # dumpio=True,
-        executablePath='/usr/bin/google-chrome',
-        userDataDir=CHROME_USER_DATA,
+        executablePath=chrome_bin,
+        userDataDir=profile_dir,
         defaultViewport=None,
         autoClose=False,
     )
@@ -53,12 +50,14 @@ async def main():
 
     try:
         url = config.SERVER_URL
+        chrome_bin = config.CHROME_BIN_PATH
+        profile_dir = config.PROFILE_DIR
 
-    except ConfigError:
-        LOGGER.error('You must configure SERVER_URL in placard.ini!')
+    except ConfigError as e:
+        LOGGER.error(f'You must configure {e.args[0]} in placards.ini!')
         return
 
-    browser, page = await chrome()
+    browser, page = await chrome(chrome_bin, profile_dir)
     await goto(page, url)
 
     while not page.isClosed():
