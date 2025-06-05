@@ -29,9 +29,13 @@ server_url=https://fishers.facman.site/
 profile_dir=${CHROME_PROFILE_DIR}
 chrome_path=${CHROME_BIN_PATH}
 EOF
-chown root:${CHROME_USER} ${CONFIG_PATH}
+chown ${CHROME_USER} ${CONFIG_PATH}
 
 echo placards \& > "${CHROME_USER_HOME}/.xinitrc"
 chown ${CHROME_USER} "${CHROME_USER_HOME}/.xinitrc"
 
-python3 setup.py install
+if [ ! -f setup.py ]; then
+    pip install https://github.com/247dink/placards-client-linux/@master#egg=placards_client
+else
+    pip install .
+fi
