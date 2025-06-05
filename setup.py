@@ -12,6 +12,11 @@ setup(
     long_description='Digital signage client using Pyppeteer to load resource in Chrome.',
     install_requires=['pyppeteer'],
     packages=['placards'],
+    entry_points={
+        'console_scripts': [
+            'placards = placards.__main__:main'
+        ],
+    },
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',

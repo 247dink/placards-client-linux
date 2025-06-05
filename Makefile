@@ -7,6 +7,7 @@ XAUTH_COOKIE := $(shell xauth list | head -n 1 | awk ' { print $$3 } ')
 	touch .venv
 
 
+.PHONY: build
 build:
 	${DOCKER_COMPOSE} build
 
