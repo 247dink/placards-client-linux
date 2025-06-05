@@ -8,7 +8,7 @@ CONFIG_PATH="${CONFIG_PATH:-${CHROME_USER_HOME}/.placards.ini}"
 CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-/var/tmp/placards}"
 
 mkdir -p "${CHROME_PROFILE_DIR}"
-chown -R "${CHROME_USER} ${CHROME_PROFILE_DIR}"
+chown -R ${CHROME_USER} "${CHROME_PROFILE_DIR}"
 
 # Try to find chrome executable...
 for EXEC_NAME in "${EXEC_NAMES}"; do
@@ -21,6 +21,10 @@ done
 if [ -z "${CHROME_BIN_PATH}" ]; then
     apt install -y chromium-browser
     CHROME_BIN_PATH=$(which chromium-browser)
+fi
+
+if ! which pip; then
+    apt install -y python3-pip
 fi
 
 echo EOF > "${CONFIG_PATH}" << EOF
