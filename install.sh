@@ -44,14 +44,6 @@ Exec=python3 -m placards
 Terminal=false
 EOF
 
-cat > "${HOME}/.config/autostart/unclutter.desktop" << EOF
-[Desktop Entry]
-Type=Application
-Name=Unclutter
-Exec=unclutter
-Terminal=false
-EOF
-
 # NOTE: Old method
 # echo "python3 -m placards \&" > "${HOME}/.xinitrc"
 
