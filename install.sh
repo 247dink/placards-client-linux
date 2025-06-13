@@ -28,7 +28,7 @@ cat > "${CONFIG_PATH}" << EOF
 [placards]
 server_url=https://fishers.facman.site/
 profile_dir=${CHROME_PROFILE_DIR}
-chrome_path=${CHROME_BIN_PATH}
+chrome_bin_path=${CHROME_BIN_PATH}
 EOF
 
 echo placards \& > "${HOME}/.xinitrc"
