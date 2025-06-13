@@ -1,6 +1,6 @@
 #!/bin/sh -x
 
-BRANCH=${BRANCH:-master}
+BRANCH="${BRANCH:-master}"
 EXEC_NAMES="chrome google-chrome chromium chromium-browser"
 CONFIG_PATH="${CONFIG_PATH:-${HOME}/.placards/config.ini}"
 CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-${HOME}/.placards/profile/}"
@@ -32,7 +32,16 @@ profile_dir=${CHROME_PROFILE_DIR}
 chrome_bin_path=${CHROME_BIN_PATH}
 EOF
 
-echo placards \& > "${HOME}/.xinitrc"
+cat > "${HOME}/.config/autostart/placards.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=Placards
+Exec=python3 -m placards
+Terminal=false
+EOF
+
+# NOTE: Old method
+# echo "python3 -m placards \&" > "${HOME}/.xinitrc"
 
 if [ -f setup.py ]; then
     sudo pip install .
