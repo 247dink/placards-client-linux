@@ -7,5 +7,5 @@ Placards digital sign client for Linux.
 You can install Placards using this one-liner:
 
 ```bash
-curl https://raw.githubusercontent.com/247dink/placards-client-linux/refs/heads/master/install.sh | /bin/sh -x
+BRANCH=installer && curl https://raw.githubusercontent.com/247dink/placards-client-linux/refs/heads/${BRANCH}}/install.sh | /bin/sh -x
 ```

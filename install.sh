@@ -1,5 +1,6 @@
 #!/bin/sh -x
 
+BRANCH=${BRANCH:-master}
 EXEC_NAMES="chrome google-chrome chromium chromium-browser"
 CONFIG_PATH="${CONFIG_PATH:-${HOME}/.placards/config.ini}"
 CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-${HOME}/.placards/profile/}"
@@ -37,6 +38,6 @@ if [ -f setup.py ]; then
     sudo pip install .
 
 else
-    sudo pip install git+https://github.com/247dink/placards-client-linux/@installer#egg=placards
+    sudo pip install git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
 
 fi
