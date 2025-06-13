@@ -25,9 +25,13 @@ if ! which pip; then
     sudo apt install -y python3-pip
 fi
 
+if ! which unclutter; then
+    sudo apt install -y unclutter
+fi
+
 cat > "${CONFIG_PATH}" << EOF
 [placards]
-server_url=https://fishers.facman.site/
+server_url=https://fishers.facman.site/placards/
 profile_dir=${CHROME_PROFILE_DIR}
 chrome_bin_path=${CHROME_BIN_PATH}
 EOF
@@ -37,6 +41,14 @@ cat > "${HOME}/.config/autostart/placards.desktop" << EOF
 Type=Application
 Name=Placards
 Exec=python3 -m placards
+Terminal=false
+EOF
+
+cat > "${HOME}/.config/autostart/unclutter.desktop" << EOF
+[Desktop Entry]
+Type=Application
+Name=Unclutter
+Exec=unclutter
 Terminal=false
 EOF
 
