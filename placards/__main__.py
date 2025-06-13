@@ -1,3 +1,5 @@
+import os
+import pwd
 import logging
 import asyncio
 
@@ -8,7 +10,7 @@ from placards.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+LOGGER.addHandler(logging.NullHandler())
 
 
 async def chrome(chrome_bin, profile_dir):
@@ -19,6 +21,7 @@ async def chrome(chrome_bin, profile_dir):
             '--start-maximized',
             '--start-fullscreen',
             '--no-default-browser-check',
+            '--ignore-certificate-errors',
         ],
         ignoreDefaultArgs=["--enable-automation"],
         # dumpio=True,
@@ -44,6 +47,18 @@ async def goto(page, url):
     })
 
 
+def setup(profile_dir):
+    root = logging.getLogger()
+    root.addHandler(logging.StreamHandler())
+    root.setLevel(logging.ERROR)
+
+    try:
+        os.makedirs(profile_dir)
+
+    except FileExistsError:
+        pass
+
+
 async def main():
     LOGGER.debug('Loading web client...')
 
@@ -55,6 +70,8 @@ async def main():
     except ConfigError as e:
         LOGGER.error(f'You must configure {e.args[0]} in placards.ini!')
         return
+
+    setup(profile_dir)
 
     browser, page = await chrome(chrome_bin, profile_dir)
     await goto(page, url)

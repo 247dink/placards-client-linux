@@ -1,4 +1,5 @@
 import sys
+import logging
 import configparser
 
 from os.path import expanduser, join as pathjoin
@@ -7,9 +8,12 @@ from types import ModuleType
 from placards.errors import ConfigError
 
 
-_NAME = 'placards.ini'
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
+
+_NAME = 'config.ini'
 _DIRS = [
-    './', '~/.placards/', '/etc/placards/',
+    '~/.placards/', '/etc/placards/',
 ]
 _SECTION = 'placards'
 _SENTINAL = object()
@@ -24,6 +28,7 @@ def _read_config(paths=None):
         paths = [
             expanduser(pathjoin(dir, _NAME)) for dir in _DIRS
         ]
+    LOGGER.info('Looking for config in %s', ', '.join(paths))
     parser = configparser.ConfigParser()
     parser.read(paths)
     return parser

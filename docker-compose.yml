@@ -9,8 +9,9 @@ services:
       context: ./
     volumes:
       - /tmp/.X11-unix:/tmp/.X11-unix
-      - ./placard:/app/placard:ro
+      - ./placards:/usr/local/lib/python3.12/dist-packages/placards:ro
       - ./docker/entrypoint.sh:/entrypoint.sh:ro
+      - ./config.ini:/etc/placards/config.ini:ro
       - user-data:/var/tmp/user-data
     environment:
       - DISPLAY=:0
