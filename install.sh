@@ -24,7 +24,7 @@ if ! which pip; then
     sudo apt install -y python3-pip
 fi
 
-echo EOF > "${CONFIG_PATH}" << EOF
+cat << EOF > "${CONFIG_PATH}"
 [placards]
 server_url=https://fishers.facman.site/
 profile_dir=${CHROME_PROFILE_DIR}
