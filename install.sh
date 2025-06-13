@@ -1,8 +1,8 @@
 #!/bin/sh -x
 
 EXEC_NAMES="chrome google-chrome chromium chromium-browser"
-CONFIG_PATH="${CONFIG_PATH:-~/.placards.ini}"
-CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-/var/tmp/placards}"
+CONFIG_PATH="${CONFIG_PATH:-${HOME}/.placards/config.ini}"
+CHROME_PROFILE_DIR="${CHROME_PROFILE_DIR:-${HOME}/.placards/profile/}"
 
 mkdir -p "${CHROME_PROFILE_DIR}"
 chown -R ${USER} "${CHROME_PROFILE_DIR}"
@@ -31,11 +31,12 @@ profile_dir=${CHROME_PROFILE_DIR}
 chrome_path=${CHROME_BIN_PATH}
 EOF
 
-echo placards \& > "~/.xinitrc"
+echo placards \& > "${HOME}/.xinitrc"
 
 if [ ! -f setup.py ]; then
-    pip install git+https://github.com/247dink/placards-client-linux/@master#egg=placards
+    sudo pip install git+https://github.com/247dink/placards-client-linux/@master#egg=placards
 
 else
-    pip install .
+    sudo pip install .
+
 fi
