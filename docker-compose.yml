@@ -16,7 +16,8 @@ services:
     environment:
       - DISPLAY=:0
       - XAUTH_COOKIE=${XAUTH_COOKIE}
-      - CHROME_USER_DATA=/var/tmp/user-data
+      - PROFILE_DIR=/var/tmp/user-data
+      - IGNORE_CERTIFICATE_ERRORS=true
     network_mode: host
     security_opt:
       - seccomp:unconfined

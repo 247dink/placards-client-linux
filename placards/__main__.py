@@ -14,15 +14,18 @@ LOGGER.addHandler(logging.NullHandler())
 
 
 async def chrome(chrome_bin, profile_dir):
+    "Launch Chrome browser and navigate to placards server."
+    args = [
+        # '--no-sandbox',
+        '--start-maximized',
+        '--start-fullscreen',
+        '--no-default-browser-check',
+    ]
+    if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
+        args.append('--ignore-certificate-errors')
     browser = await launch(
         headless=False,
-        args=[
-            # '--no-sandbox',
-            '--start-maximized',
-            '--start-fullscreen',
-            '--no-default-browser-check',
-            '--ignore-certificate-errors',
-        ],
+        args=args,
         ignoreDefaultArgs=["--enable-automation"],
         # dumpio=True,
         executablePath=chrome_bin,
@@ -48,10 +51,7 @@ async def goto(page, url):
 
 
 def setup(profile_dir):
-    root = logging.getLogger()
-    root.addHandler(logging.StreamHandler())
-    root.setLevel(logging.ERROR)
-
+    "Set up directories, permission, environment."
     try:
         os.makedirs(profile_dir)
 
@@ -60,6 +60,11 @@ def setup(profile_dir):
 
 
 async def main():
+    "Main entry point."
+    root = logging.getLogger()
+    root.addHandler(logging.StreamHandler())
+    root.setLevel(logging.ERROR)
+
     LOGGER.debug('Loading web client...')
 
     try:
@@ -68,7 +73,7 @@ async def main():
         profile_dir = config.PROFILE_DIR
 
     except ConfigError as e:
-        LOGGER.error(f'You must configure {e.args[0]} in placards.ini!')
+        LOGGER.error(f'You must configure {e.args[0]} in config.ini!')
         return
 
     setup(profile_dir)
@@ -82,4 +87,5 @@ async def main():
     await browser.close()
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())

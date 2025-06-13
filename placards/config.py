@@ -1,3 +1,4 @@
+import os
 import sys
 import logging
 import configparser
@@ -20,6 +21,8 @@ _SENTINAL = object()
 
 
 def _to_bool(s):
+    if isinstance(s, bool):
+        return s
     return s.lower() in ['1', 'yes', 'on', 'true']
 
 
@@ -52,11 +55,15 @@ class _ConfigModule(ModuleType):
             config = _read_config()
             setattr(self, '_config', config)
 
-        try:
-            value = config.get(_SECTION, name)
+        if name in os.environ:
+            value = os.getenv(name)
 
-        except configparser.NoOptionError:
-            raise ConfigError(name)
+        else:
+            try:
+                value = config.get(_SECTION, name)
+
+            except configparser.NoOptionError:
+                raise ConfigError(name)
 
         setattr(self, name, value)
         return value
