@@ -33,10 +33,10 @@ EOF
 
 echo placards \& > "${HOME}/.xinitrc"
 
-if [ ! -f setup.py ]; then
-    sudo pip install git+https://github.com/247dink/placards-client-linux/@installer#egg=placards
+if [ -f setup.py ]; then
+    sudo pip install .
 
 else
-    sudo pip install .
+    sudo pip install git+https://github.com/247dink/placards-client-linux/@installer#egg=placards
 
 fi
