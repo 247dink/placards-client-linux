@@ -1,5 +1,4 @@
 import os
-import pwd
 import shutil
 import subprocess
 import logging
@@ -62,7 +61,7 @@ def setup(profile_dir):
 
     unclutter_path = shutil.which('unclutter')
     if unclutter_path:
-        p = subprocess.Popen([unclutter_path])
+        subprocess.Popen([unclutter_path])
 
 
 async def main():
