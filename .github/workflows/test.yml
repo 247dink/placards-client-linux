@@ -69,7 +69,6 @@ jobs:
       - name: Git push
         uses: ad-m/github-push-action@master
         with:
-          github_token: ${{ secrets.PERSONAL_TOKEN }}
           force: true
 
       - name: Create prerelease
