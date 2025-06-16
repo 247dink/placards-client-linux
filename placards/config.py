@@ -1,4 +1,6 @@
+import os
 import sys
+import logging
 import configparser
 
 from os.path import expanduser, join as pathjoin
@@ -7,15 +9,20 @@ from types import ModuleType
 from placards.errors import ConfigError
 
 
-_NAME = 'placards.ini'
+LOGGER = logging.getLogger(__name__)
+LOGGER.addHandler(logging.NullHandler())
+
+_NAME = 'config.ini'
 _DIRS = [
-    './', '~/.placards/', '/etc/placards/',
+    '~/.placards/', '/etc/placards/',
 ]
 _SECTION = 'placards'
 _SENTINAL = object()
 
 
 def _to_bool(s):
+    if isinstance(s, bool):
+        return s
     return s.lower() in ['1', 'yes', 'on', 'true']
 
 
@@ -24,6 +31,7 @@ def _read_config(paths=None):
         paths = [
             expanduser(pathjoin(dir, _NAME)) for dir in _DIRS
         ]
+    LOGGER.info('Looking for config in %s', ', '.join(paths))
     parser = configparser.ConfigParser()
     parser.read(paths)
     return parser
@@ -44,14 +52,19 @@ class _ConfigModule(ModuleType):
 
         config = object.__getattribute__(self, '_config')
         if config is None:
-            config = _read_config()
+            config_path = os.getenv('PLACARDS_CONFIG_PATH', None)
+            config = _read_config(config_path)
             setattr(self, '_config', config)
 
-        try:
-            value = config.get(_SECTION, name)
+        if name in os.environ:
+            value = os.getenv(name)
 
-        except configparser.NoOptionError:
-            raise ConfigError(name)
+        else:
+            try:
+                value = config.get(_SECTION, name)
+
+            except configparser.NoOptionError:
+                raise ConfigError(name)
 
         setattr(self, name, value)
         return value

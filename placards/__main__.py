@@ -1,3 +1,6 @@
+import os
+import shutil
+import subprocess
 import logging
 import asyncio
 
@@ -8,7 +11,7 @@ from placards.errors import ConfigError
 
 
 LOGGER = logging.getLogger(__name__)
-LOGGER.addHandler(logging.StreamHandler())
+LOGGER.addHandler(logging.NullHandler())
 
 
 async def chrome(chrome_bin, profile_dir):
@@ -24,12 +27,7 @@ async def chrome(chrome_bin, profile_dir):
         args.append('--ignore-certificate-errors')
     browser = await launch(
         headless=False,
-        args=[
-            # '--no-sandbox',
-            '--start-maximized',
-            '--start-fullscreen',
-            '--no-default-browser-check',
-        ],
+        args=args,
         ignoreDefaultArgs=["--enable-automation"],
         # dumpio=True,
         executablePath=chrome_bin,
@@ -54,7 +52,25 @@ async def goto(page, url):
     })
 
 
+def setup(profile_dir):
+    "Set up directories, permission, environment."
+    try:
+        os.makedirs(profile_dir)
+
+    except FileExistsError:
+        pass
+
+    unclutter_path = shutil.which('unclutter')
+    if unclutter_path:
+        subprocess.Popen([unclutter_path])
+
+
 async def main():
+    "Main entry point."
+    root = logging.getLogger()
+    root.addHandler(logging.StreamHandler())
+    root.setLevel(logging.ERROR)
+
     LOGGER.debug('Loading web client...')
 
     try:
@@ -63,8 +79,10 @@ async def main():
         profile_dir = config.PROFILE_DIR
 
     except ConfigError as e:
-        LOGGER.error(f'You must configure {e.args[0]} in placards.ini!')
+        LOGGER.error(f'You must configure {e.args[0]} in config.ini!')
         return
+
+    setup(profile_dir)
 
     browser, page = await chrome(chrome_bin, profile_dir)
     await goto(page, url)
@@ -75,4 +93,5 @@ async def main():
     await browser.close()
 
 
-asyncio.run(main())
+if __name__ == '__main__':
+    asyncio.run(main())

@@ -1,12 +1,14 @@
+import os
 import importlib
 
+from os.path import dirname, join as pathjoin
 from unittest import TestCase
 
 from placards.errors import ConfigError
 
 
 CONFIG_MODULE = 'placards.config'
-
+os.environ['PLACARDS_CONFIG_PATH'] = pathjoin(dirname(__file__), 'config.ini')
 
 class ConfigTestCase(TestCase):
     def setUp(self):
