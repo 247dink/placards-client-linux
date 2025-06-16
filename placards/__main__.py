@@ -21,6 +21,7 @@ async def chrome(chrome_bin, profile_dir):
         '--start-maximized',
         '--start-fullscreen',
         '--no-default-browser-check',
+        '--autoplay-policy=no-user-gesture-required',
     ]
     if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
         args.append('--ignore-certificate-errors')
