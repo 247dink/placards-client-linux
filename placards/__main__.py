@@ -12,6 +12,16 @@ LOGGER.addHandler(logging.StreamHandler())
 
 
 async def chrome(chrome_bin, profile_dir):
+    "Launch Chrome browser and navigate to placards server."
+    args = [
+        # '--no-sandbox',
+        '--start-maximized',
+        '--start-fullscreen',
+        '--no-default-browser-check',
+        '--autoplay-policy=no-user-gesture-required',
+    ]
+    if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
+        args.append('--ignore-certificate-errors')
     browser = await launch(
         headless=False,
         args=[
