@@ -52,7 +52,8 @@ class _ConfigModule(ModuleType):
 
         config = object.__getattribute__(self, '_config')
         if config is None:
-            config = _read_config()
+            config_path = os.getenv('PLACARDS_CONFIG_PATH', None)
+            config = _read_config(config_path)
             setattr(self, '_config', config)
 
         if name in os.environ:

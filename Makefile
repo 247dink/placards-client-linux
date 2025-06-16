@@ -43,7 +43,7 @@ lint: .venv
 
 
 test: .venv
-	pipenv run python3 -m unittest tests/*
+	pipenv run python3 -m unittest tests/test_*.py
 
 
 ci: test lint
