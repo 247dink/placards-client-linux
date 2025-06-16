@@ -7,8 +7,8 @@ XAUTH_COOKIE := $(shell xauth list | head -n 1 | awk ' { print $$3 } ')
 	touch .venv
 
 
-.PHONY: build
-build:
+.PHONY: image
+image:
 	${DOCKER_COMPOSE} build
 
 
@@ -43,7 +43,7 @@ lint: .venv
 
 
 test: .venv
-	pipenv run python3 -m unittest tests/*
+	pipenv run python3 -m unittest tests/test_*.py
 
 
 ci: test lint
