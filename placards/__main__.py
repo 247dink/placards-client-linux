@@ -1,4 +1,5 @@
 import os
+import shlex
 import shutil
 import subprocess
 import logging
@@ -12,6 +13,19 @@ from placards.errors import ConfigError
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
+STARTUP = [
+    # Hide mouse cursor.
+    'unclutter',
+
+    # Disable screen blanking and screensaver.
+    'xset s noblank',
+    'xset s off',
+    'xset -dpms',
+
+    # Ensure any potential errors are not display when Chrome starts.
+    'sed -i \'s/"exited_cleanly":false/"exited_cleanly":true/\' /home/$USER/.config/chromium/Default/Preferences'
+    'sed -i \'s/"exit_type":"Crashed"/"exit_type":"Normal"/\' /home/$USER/.config/chromium/Default/Preferences',
+]
 
 
 async def chrome(chrome_bin, profile_dir):
@@ -46,7 +60,6 @@ async def chrome(chrome_bin, profile_dir):
 async def goto(page, url):
     page.setDefaultNavigationTimeout(0)
     await page.goto(url, waitUntil='networkidle2')
-    # await page.keyboard.press('F11')
     await page.screenshot({
         'type': 'png',
     })
@@ -54,15 +67,21 @@ async def goto(page, url):
 
 def setup(profile_dir):
     "Set up directories, permission, environment."
+    # Ensure profile directory exists.
     try:
         os.makedirs(profile_dir)
 
     except FileExistsError:
         pass
 
-    unclutter_path = shutil.which('unclutter')
-    if unclutter_path:
-        subprocess.Popen([unclutter_path])
+    # Run startup commands to prepare X.
+    for command in STARTUP:
+        cmd = shlex.split(command)
+        bin = shutil.which(cmd[0])
+        if not bin:
+            LOGGER.warning('Could not find program', cmd[0])
+            continue
+        subprocess.Popen([bin, *cmd[1:]])
 
 
 async def main():
