@@ -27,10 +27,10 @@ async def chrome(chrome_bin, profile_dir):
         args.append('--ignore-certificate-errors')
     if not config.getbool('DEBUG', False):
         args.extend([
-        '--noerrdialogs',
-        '--disable-infobars',
-        '--kiosk',
-    ])
+            '--noerrdialogs',
+            '--disable-infobars',
+            '--kiosk',
+        ])
     browser = await launch(
         headless=False,
         args=args,
