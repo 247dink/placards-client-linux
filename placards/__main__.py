@@ -28,10 +28,9 @@ STARTUP = [
 ]
 
 
-async def chrome(chrome_bin, profile_dir):
+async def chrome(chrome_bin, profile_dir, debug=False):
     "Launch Chrome browser and navigate to placards server."
     args = [
-        # '--no-sandbox',
         '--start-maximized',
         '--start-fullscreen',
         '--no-default-browser-check',
@@ -39,7 +38,7 @@ async def chrome(chrome_bin, profile_dir):
     ]
     if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
         args.append('--ignore-certificate-errors')
-    if not config.getbool('DEBUG', False):
+    if not debug:
         args.extend([
             '--noerrdialogs',
             '--disable-infobars',
@@ -49,7 +48,7 @@ async def chrome(chrome_bin, profile_dir):
         headless=False,
         args=args,
         ignoreDefaultArgs=["--enable-automation"],
-        # dumpio=True,
+        dumpio=debug,
         executablePath=chrome_bin,
         userDataDir=profile_dir,
         defaultViewport=None,
@@ -87,14 +86,19 @@ def setup(profile_dir):
         if not bin:
             LOGGER.warning('Could not find program', cmd[0])
             continue
+        LOGGER.debug('Running startup command', [bin, *cmd[1:]])
         subprocess.Popen([bin, *cmd[1:]])
 
 
 async def main():
     "Main entry point."
+    log_level_name = config.get('LOG_LEVEL', 'ERROR').upper()
+    log_level = getattr(logging, log_level_name)
+    debug = (log_level_name == 'DEBUG')
+
     root = logging.getLogger()
     root.addHandler(logging.StreamHandler())
-    root.setLevel(logging.ERROR)
+    root.setLevel(log_level)
 
     LOGGER.debug('Loading web client...')
 
@@ -109,14 +113,21 @@ async def main():
 
     setup(profile_dir)
 
-    browser, page = await chrome(chrome_bin, profile_dir)
-    await goto(page, url)
+    browser, page = await chrome(chrome_bin, profile_dir, debug)
+    try:
+        await goto(page, url)
 
-    while not page.isClosed():
-        await asyncio.sleep(0.1)
+        while not page.isClosed():
+            await asyncio.sleep(0.1)
 
-    await browser.close()
+    finally:
+        await browser.close()
 
 
 if __name__ == '__main__':
-    asyncio.run(main())
+    while True:
+        try:
+            asyncio.run(main())
+
+        except Exception:
+            LOGGER.exception('Error running Placards, restarting...')
