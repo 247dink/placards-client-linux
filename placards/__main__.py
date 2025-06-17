@@ -23,8 +23,8 @@ STARTUP = [
     'xset -dpms',
 
     # Ensure any potential errors are not display when Chrome starts.
-    'sed -i \'s/"exited_cleanly":false/"exited_cleanly":true/\' /home/$USER/.config/chromium/Default/Preferences'
-    'sed -i \'s/"exit_type":"Crashed"/"exit_type":"Normal"/\' /home/$USER/.config/chromium/Default/Preferences',
+    'sed -i \'s/"exited_cleanly":false/"exited_cleanly":true/\' /home/$USER/.config/chromium/Default/Preferences',  # noqa
+    'sed -i \'s/"exit_type":"Crashed"/"exit_type":"Normal"/\' /home/$USER/.config/chromium/Default/Preferences',  # noqa
 ]
 
 
