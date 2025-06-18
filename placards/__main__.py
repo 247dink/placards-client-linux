@@ -1,9 +1,13 @@
 import os
+import json
 import shlex
 import shutil
+import tempfile
 import subprocess
 import logging
 import asyncio
+
+from os.path import dirname, join as pathjoin
 
 from pyppeteer import launch
 
@@ -21,11 +25,8 @@ STARTUP = [
     'xset s noblank',
     'xset s off',
     'xset -dpms',
-
-    # Ensure any potential errors are not display when Chrome starts.
-    'sed -i \'s/"exited_cleanly":false/"exited_cleanly":true/\' /home/$USER/.config/chromium/Default/Preferences',  # noqa
-    'sed -i \'s/"exit_type":"Crashed"/"exit_type":"Normal"/\' /home/$USER/.config/chromium/Default/Preferences',  # noqa
 ]
+PREFERENCES_PATH = 'Default/Preferences'
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -70,6 +71,23 @@ async def goto(page, url):
     })
 
 
+def edit_json(path, **kwargs):
+    try:
+        with open(path, 'r') as f:
+            o = json.load(f)
+        for key, value in kwargs.items():
+            o[key] = value
+        with tempfile.NamedTemporaryFile('wt',
+                                         prefix=dirname(path),
+                                         delete=False) as f:
+            json.dump(o, f)
+            os.remove(path)
+            os.rename(f.name, path)
+
+    except Exception:
+        LOGGER.exception('Error modifying JSON file: %s', path)
+
+
 def setup(profile_dir):
     "Set up directories, permission, environment."
     # Ensure profile directory exists.
@@ -87,7 +105,18 @@ def setup(profile_dir):
             LOGGER.warning('Could not find program', cmd[0])
             continue
         LOGGER.debug('Running startup command', [bin, *cmd[1:]])
-        subprocess.Popen([bin, *cmd[1:]])
+        subprocess.Popen(
+            [bin, *cmd[1:]],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+
+    # Clear away crash status from Chrome prefs.
+    edit_json_file(
+        pathjoin(profile_dir, PREFERENCES_PATH),
+        exited_cleanly=True,
+        exit_type='Normal',
+    )
 
 
 async def main():
@@ -125,9 +154,4 @@ async def main():
 
 
 if __name__ == '__main__':
-    while True:
-        try:
-            asyncio.run(main())
-
-        except Exception:
-            LOGGER.exception('Error running Placards, restarting...')
+    asyncio.run(main())

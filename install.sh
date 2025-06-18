@@ -34,6 +34,7 @@ cat > "${CONFIG_PATH}" << EOF
 server_url=https://fishers.facman.site/placards/
 profile_dir=${CHROME_PROFILE_DIR}
 chrome_bin_path=${CHROME_BIN_PATH}
+ignore_certificate_errors=true
 EOF
 
 cat > "${HOME}/.config/autostart/placards.desktop" << EOF
