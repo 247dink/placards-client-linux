@@ -71,7 +71,7 @@ async def goto(page, url):
     })
 
 
-def edit_json(path, **kwargs):
+def edit_json_file(path, **kwargs):
     try:
         with open(path, 'r') as f:
             o = json.load(f)
