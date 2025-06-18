@@ -78,7 +78,7 @@ jobs:
           tag: v${{ steps.get-version.outputs.current_version }}
           prerelease: true
           body: ${{ github.event.pull_request.title }}
-          token: ${{ secrets.PERSONAL_TOKEN }}
+          # token: ${{ secrets.PERSONAL_TOKEN }}
           artifacts: dist/placards-${{ steps.get-version.outputs.current_version }}-py3-none-any.whl
 
       - name: Publish
