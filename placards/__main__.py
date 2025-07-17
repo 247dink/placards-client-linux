@@ -10,6 +10,7 @@ import asyncio
 from os.path import dirname, join as pathjoin
 
 from pyppeteer import launch
+from pyppeteer.errors import PageError
 
 from placards import config
 from placards.errors import ConfigError
@@ -61,14 +62,6 @@ async def chrome(chrome_bin, profile_dir, debug=False):
     else:
         page = await browser.newPage()
     return browser, page
-
-
-async def goto(page, url):
-    page.setDefaultNavigationTimeout(0)
-    await page.goto(url, waitUntil='networkidle2')
-    await page.screenshot({
-        'type': 'png',
-    })
 
 
 def edit_json_file(path, **kwargs):
@@ -143,9 +136,21 @@ async def main():
     setup(profile_dir)
 
     browser, page = await chrome(chrome_bin, profile_dir, debug)
-    try:
-        await goto(page, url)
+    page.setDefaultNavigationTimeout(0)
 
+    try:
+        # We need this page to load, so we will keep trying until it works.
+        while True:
+            try:
+                await page.goto(url, waitUntil='networkidle2')
+                break
+
+            except PageError:
+                LOGGER.exception('Error loading %s', url)
+                asyncio.sleep(5.0)
+                LOGGER.info('Trying again...')
+
+        # Once the page is loaded, wait for it to close.
         while not page.isClosed():
             await asyncio.sleep(0.1)
 
