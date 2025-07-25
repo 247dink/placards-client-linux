@@ -68,7 +68,7 @@ async def chrome(chrome_bin, profile_dir, debug=False):
         defaultViewport=None,
         autoClose=False,
     )
-    load, page = getPages(browser, 2)
+    load, page = await getPages(browser, 2)
     return browser, load, page
 
 
@@ -133,6 +133,7 @@ async def main():
     log_level_name = config.get('LOG_LEVEL', 'ERROR').upper()
     log_level = getattr(logging, log_level_name)
     debug = (log_level_name == 'DEBUG')
+    loading_url = f'file://{LOADING_HTML}'
 
     root = logging.getLogger()
     root.addHandler(logging.StreamHandler())
@@ -153,7 +154,8 @@ async def main():
 
     browser, load, page = await chrome(chrome_bin, profile_dir, debug)
 
-    await load.goto(LOADING_HTML)
+    print('LOADING_URL', loading_url)
+    await load.goto(loading_url)
     await load.bringToFront()
 
     page.setDefaultNavigationTimeout(0)
@@ -164,6 +166,7 @@ async def main():
             try:
                 await page.goto(url, waitUntil='networkidle2')
                 await page.bringToFront()
+                await load.close()
                 break
 
             except PageError:
