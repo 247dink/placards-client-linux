@@ -13,6 +13,7 @@ setup(
     install_requires=['pyppeteer'],
     packages=['placards'],
     scripts=['bin/placards'],
+    include_package_data=True,
     classifiers=[
         'Development Status :: 5 - Production/Stable',
         'Intended Audience :: Developers',
