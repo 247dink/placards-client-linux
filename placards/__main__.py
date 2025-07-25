@@ -171,8 +171,8 @@ async def main():
 
             except PageError:
                 LOGGER.exception('Error loading %s', url)
-                asyncio.sleep(5.0)
-                LOGGER.info('Trying again...')
+                await asyncio.sleep(5.0)
+                LOGGER.error('Trying again...')
 
         # Once the page is loaded, wait for it to close.
         while not page.isClosed():
