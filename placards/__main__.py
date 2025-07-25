@@ -1,5 +1,6 @@
 import os
 import json
+import glob
 import shlex
 import shutil
 import tempfile
@@ -28,6 +29,17 @@ STARTUP = [
     'xset -dpms',
 ]
 PREFERENCES_PATH = 'Default/Preferences'
+LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
+
+
+async def getPages(browser, count):
+    "Close all tabs, open and return requested number of new tabs."
+    pages = []
+    for page in await browser.pages():
+        await page.close()
+    for i in range(count):
+        pages.append(await browser.newPage())
+    return tuple(pages)
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -56,15 +68,12 @@ async def chrome(chrome_bin, profile_dir, debug=False):
         defaultViewport=None,
         autoClose=False,
     )
-    pages = await browser.pages()
-    if len(pages):
-        page = pages[0]
-    else:
-        page = await browser.newPage()
-    return browser, page
+    load, page = getPages(browser, 2)
+    return browser, load, page
 
 
 def edit_json_file(path, **kwargs):
+    "Change keys in .json file and save."
     try:
         with open(path, 'r') as f:
             o = json.load(f)
@@ -104,6 +113,13 @@ def setup(profile_dir):
             stderr=subprocess.DEVNULL,
         )
 
+    for fn in glob.glob('Singleton*', root_dir=profile_dir):
+        try:
+            os.remove(fn)
+
+        except Exception as e:
+            LOGGER.warning(f'Could not delete Singleton file {fn}')
+
     # Clear away crash status from Chrome prefs.
     edit_json_file(
         pathjoin(profile_dir, PREFERENCES_PATH),
@@ -135,7 +151,11 @@ async def main():
 
     setup(profile_dir)
 
-    browser, page = await chrome(chrome_bin, profile_dir, debug)
+    browser, load, page = await chrome(chrome_bin, profile_dir, debug)
+
+    await load.goto(LOADING_HTML)
+    await load.bringToFront()
+
     page.setDefaultNavigationTimeout(0)
 
     try:
@@ -143,6 +163,7 @@ async def main():
         while True:
             try:
                 await page.goto(url, waitUntil='networkidle2')
+                await page.bringToFront()
                 break
 
             except PageError:
