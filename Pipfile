@@ -5,6 +5,7 @@ name = "pypi"
 
 [packages]
 pyppeteer = "*"
+aiohttp = "*"
 
 [dev-packages]
 flake8 = "*"

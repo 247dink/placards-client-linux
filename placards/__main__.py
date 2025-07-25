@@ -10,6 +10,8 @@ import asyncio
 
 from os.path import dirname, join as pathjoin
 
+import aiohttp
+from aiohttp.client_exceptions import ClientError
 from pyppeteer import launch
 from pyppeteer.errors import PageError
 
@@ -30,16 +32,6 @@ STARTUP = [
 ]
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
-
-
-async def getPages(browser, count):
-    "Close all tabs, open and return requested number of new tabs."
-    pages = []
-    for page in await browser.pages():
-        await page.close()
-    for i in range(count):
-        pages.append(await browser.newPage())
-    return tuple(pages)
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -68,8 +60,8 @@ async def chrome(chrome_bin, profile_dir, debug=False):
         defaultViewport=None,
         autoClose=False,
     )
-    load, page = await getPages(browser, 2)
-    return browser, load, page
+    page = (await browser.pages())[0]
+    return browser, page
 
 
 def edit_json_file(path, **kwargs):
@@ -104,7 +96,7 @@ def setup(profile_dir):
         cmd = shlex.split(command)
         bin = shutil.which(cmd[0])
         if not bin:
-            LOGGER.warning('Could not find program', cmd[0])
+            LOGGER.warning(f'Could not find program {cmd[0]}')
             continue
         LOGGER.debug('Running startup command', [bin, *cmd[1:]])
         subprocess.Popen(
@@ -115,10 +107,10 @@ def setup(profile_dir):
 
     for fn in glob.glob('Singleton*', root_dir=profile_dir):
         try:
-            os.remove(fn)
+            os.remove(pathjoin(profile_dir, fn))
 
-        except Exception as e:
-            LOGGER.warning(f'Could not delete Singleton file {fn}')
+        except Exception:
+            LOGGER.warning(f'Could not delete Singleton file {fn}', exc_info=True)
 
     # Clear away crash status from Chrome prefs.
     edit_json_file(
@@ -130,7 +122,7 @@ def setup(profile_dir):
 
 async def main():
     "Main entry point."
-    log_level_name = config.get('LOG_LEVEL', 'ERROR').upper()
+    log_level_name = config.get('LOG_LEVEL', 'WARNING').upper()
     log_level = getattr(logging, log_level_name)
     debug = (log_level_name == 'DEBUG')
     loading_url = f'file://{LOADING_HTML}'
@@ -152,28 +144,31 @@ async def main():
 
     setup(profile_dir)
 
-    browser, load, page = await chrome(chrome_bin, profile_dir, debug)
-
-    print('LOADING_URL', loading_url)
-    await load.goto(loading_url)
-    await load.bringToFront()
-
+    browser, page = await chrome(chrome_bin, profile_dir, debug)
     page.setDefaultNavigationTimeout(0)
 
+    while True:
+        try:
+            async with aiohttp.ClientSession() as s:
+                await s.head(url, ssl=not config.getbool('IGNORE_CERTIFICATE_ERRORS', False))
+            break
+
+        except ClientError:
+            await page.goto(loading_url)
+            LOGGER.warning(f'Error preloading url {url}')
+            await asyncio.sleep(5.0)
+
+    while True:
+        try:
+            # We need this page to load, so we will keep trying until it works.
+            await page.goto(url, waitUntil='networkidle2')
+            break
+
+        except PageError:
+            LOGGER.warning(f'Error loading url {url}')
+            await asyncio.sleep(5.0)
+
     try:
-        # We need this page to load, so we will keep trying until it works.
-        while True:
-            try:
-                await page.goto(url, waitUntil='networkidle2')
-                await page.bringToFront()
-                await load.close()
-                break
-
-            except PageError:
-                LOGGER.exception('Error loading %s', url)
-                await asyncio.sleep(5.0)
-                LOGGER.error('Trying again...')
-
         # Once the page is loaded, wait for it to close.
         while not page.isClosed():
             await asyncio.sleep(0.1)

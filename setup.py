@@ -10,7 +10,7 @@ setup(
     author_email='btimby@gmail.com',
     description='A placards digital signage client for Linux in Python',
     long_description='Digital signage client using Pyppeteer to load resource in Chrome.',
-    install_requires=['pyppeteer'],
+    install_requires=['pyppeteer', 'aiohttp'],
     packages=['placards'],
     scripts=['bin/placards'],
     data_files=['placards/html/index.html'],
