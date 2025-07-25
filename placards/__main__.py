@@ -158,6 +158,8 @@ async def main():
             LOGGER.warning(f'Error preloading url {url}')
             await asyncio.sleep(5.0)
 
+    await asyncio.sleep(3.0)
+
     while True:
         try:
             # We need this page to load, so we will keep trying until it works.
