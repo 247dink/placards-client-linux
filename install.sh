@@ -46,9 +46,9 @@ Terminal=false
 EOF
 
 if [ -f setup.py ]; then
-    sudo pip install .
+    sudo pip install --break-system-packages .
 
 else
-    sudo pip install git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
+    sudo pip install --break-system-packages git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
 
 fi
