@@ -83,7 +83,7 @@ def run_command(command):
     bin = shutil.which(cmd[0])
     if not bin:
         LOGGER.warning(f'Could not find program {cmd[0]}')
-        continue
+        return
     return subprocess.Popen(
         [bin, *cmd[1:]],
         stdout=subprocess.DEVNULL,
@@ -120,7 +120,7 @@ def setup(profile_dir):
 
     # Run startup commands to prepare X.
     for command in STARTUP:
-        LOGGER.debug('Running startup command', [bin, *cmd[1:]])
+        LOGGER.debug('Running startup command', command)
         run_command(command)
 
     for fn in glob.glob('Singleton*', root_dir=profile_dir):
@@ -190,7 +190,7 @@ async def main():
 
 
     def message_handler(message):
-        LOGGER.debug('Received placards command: ', message[command])
+        LOGGER.debug('Received placards command: ', message['command'])
 
         if message['command'] == 'reboot':
             run_command(REBOOT)
@@ -198,18 +198,11 @@ async def main():
         elif message['command'] == 'vnc':
             run_command('x11vnc')
             host, port = get_addr(), 5900
-            asyncio.run(page.evaluate(
-                '''
-                window.placardsClient({
-                    command: "vnc",
-                    host: "%s",
-                    port: %i,
-                });
-                ''' % (host, port)
-            ))
+            return {'host': host, 'port': port}
 
 
     await page.exposeFunction('placardsServer', message_handler)
+    LOGGER.debug('placardsServer function exposed.')
 
     try:
         # Once the page is loaded, wait for it to close.
