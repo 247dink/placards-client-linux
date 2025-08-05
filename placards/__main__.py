@@ -4,6 +4,7 @@ import glob
 import shlex
 import shutil
 import tempfile
+import socket
 import subprocess
 import logging
 import asyncio
@@ -30,6 +31,7 @@ STARTUP = [
     'xset s off',
     'xset -dpms',
 ]
+REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
 
@@ -64,6 +66,31 @@ async def chrome(chrome_bin, profile_dir, debug=False):
     return browser, page
 
 
+def get_addr():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        s.connect(('8.8.8.8', 1))
+
+    except Exception:
+        pass
+
+    return s.getsockname()[0]
+
+
+def run_command(command):
+    cmd = shlex.split(command)
+    bin = shutil.which(cmd[0])
+    if not bin:
+        LOGGER.warning(f'Could not find program {cmd[0]}')
+        continue
+    return subprocess.Popen(
+        [bin, *cmd[1:]],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
 def edit_json_file(path, **kwargs):
     "Change keys in .json file and save."
     try:
@@ -93,17 +120,8 @@ def setup(profile_dir):
 
     # Run startup commands to prepare X.
     for command in STARTUP:
-        cmd = shlex.split(command)
-        bin = shutil.which(cmd[0])
-        if not bin:
-            LOGGER.warning(f'Could not find program {cmd[0]}')
-            continue
         LOGGER.debug('Running startup command', [bin, *cmd[1:]])
-        subprocess.Popen(
-            [bin, *cmd[1:]],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        run_command(command)
 
     for fn in glob.glob('Singleton*', root_dir=profile_dir):
         try:
@@ -169,6 +187,29 @@ async def main():
         except PageError:
             LOGGER.warning(f'Error loading url {url}')
             await asyncio.sleep(5.0)
+
+
+    def message_handler(message):
+        LOGGER.debug('Received placards command: ', message[command])
+
+        if message['command'] == 'reboot':
+            run_command(REBOOT)
+
+        elif message['command'] == 'vnc':
+            run_command('x11vnc')
+            host, port = get_addr(), 5900
+            asyncio.run(page.evaluate(
+                '''
+                window.placardsClient({
+                    command: "vnc",
+                    host: "%s",
+                    port: %i,
+                });
+                ''' % (host, port)
+            ))
+
+
+    await page.exposeFunction('placardsServer', message_handler)
 
     try:
         # Once the page is loaded, wait for it to close.
