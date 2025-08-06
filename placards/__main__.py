@@ -128,7 +128,8 @@ def setup(profile_dir):
             os.remove(pathjoin(profile_dir, fn))
 
         except Exception:
-            LOGGER.warning('Could not delete Singleton file %s', fn, exc_info=True)
+            LOGGER.warning(
+                'Could not delete Singleton file %s', fn, exc_info=True)
 
     # Clear away crash status from Chrome prefs.
     edit_json_file(
@@ -171,7 +172,10 @@ async def main():
     while True:
         try:
             async with aiohttp.ClientSession() as s:
-                await s.head(url, ssl=not config.getbool('IGNORE_CERTIFICATE_ERRORS', False))
+                await s.head(
+                    url,
+                    ssl=not config.getbool('IGNORE_CERTIFICATE_ERRORS', False)
+                )
             break
 
         except ClientError:
@@ -191,7 +195,6 @@ async def main():
             LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
 
-
     def message_handler(message):
         LOGGER.info('Received placards command: %s', message['command'])
 
@@ -204,7 +207,6 @@ async def main():
             if p and not p.poll():
                 return None
             return {'host': host, 'port': port}
-
 
     await page.exposeFunction('placardsServer', message_handler)
     LOGGER.info('placardsServer function exposed.')
