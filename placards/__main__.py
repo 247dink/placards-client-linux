@@ -82,7 +82,7 @@ def run_command(command):
     cmd = shlex.split(command)
     bin = shutil.which(cmd[0])
     if not bin:
-        LOGGER.warning(f'Could not find program {cmd[0]}')
+        LOGGER.warning('Could not find program %s', cmd[0])
         return
     return subprocess.Popen(
         [bin, *cmd[1:]],
@@ -128,7 +128,7 @@ def setup(profile_dir):
             os.remove(pathjoin(profile_dir, fn))
 
         except Exception:
-            LOGGER.warning(f'Could not delete Singleton file {fn}', exc_info=True)
+            LOGGER.warning('Could not delete Singleton file %s', fn, exc_info=True)
 
     # Clear away crash status from Chrome prefs.
     edit_json_file(
@@ -140,9 +140,12 @@ def setup(profile_dir):
 
 async def main():
     "Main entry point."
-    log_level_name = config.get('LOG_LEVEL', 'WARNING').upper()
+    debug = config.getbool('DEBUG', False)
+    log_level_name = config.get(
+        'LOG_LEVEL',
+        'INFO' if not debug else 'DEBUG'
+    ).upper()
     log_level = getattr(logging, log_level_name)
-    debug = (log_level_name == 'DEBUG')
     loading_url = f'file://{LOADING_HTML}'
 
     root = logging.getLogger()
@@ -157,7 +160,7 @@ async def main():
         profile_dir = config.PROFILE_DIR
 
     except ConfigError as e:
-        LOGGER.error(f'You must configure {e.args[0]} in config.ini!')
+        LOGGER.error('You must configure %s in config.ini!', e.args[0])
         return
 
     setup(profile_dir)
@@ -173,7 +176,7 @@ async def main():
 
         except ClientError:
             await page.goto(loading_url)
-            LOGGER.warning(f'Error preloading url {url}')
+            LOGGER.warning('Error preloading url: %s', url)
             await asyncio.sleep(5.0)
 
     await asyncio.sleep(3.0)
@@ -185,24 +188,26 @@ async def main():
             break
 
         except PageError:
-            LOGGER.warning(f'Error loading url {url}')
+            LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
 
 
     def message_handler(message):
-        LOGGER.debug('Received placards command: ', message['command'])
+        LOGGER.info('Received placards command: %s', message['command'])
 
         if message['command'] == 'reboot':
             run_command(REBOOT)
 
         elif message['command'] == 'vnc':
-            run_command('x11vnc')
+            p = run_command('x11vnc')
             host, port = get_addr(), 5900
+            if p and not p.poll():
+                return None
             return {'host': host, 'port': port}
 
 
     await page.exposeFunction('placardsServer', message_handler)
-    LOGGER.debug('placardsServer function exposed.')
+    LOGGER.info('placardsServer function exposed.')
 
     try:
         # Once the page is loaded, wait for it to close.
