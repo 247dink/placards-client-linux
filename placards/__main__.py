@@ -16,6 +16,7 @@ from aiohttp.client_exceptions import ClientError
 from pyppeteer import launch
 from pyppeteer.errors import PageError
 
+from placards.__version__ import __version__
 from placards import config
 from placards.errors import ConfigError
 
@@ -43,6 +44,7 @@ async def chrome(chrome_bin, profile_dir, debug=False):
         '--start-fullscreen',
         '--no-default-browser-check',
         '--autoplay-policy=no-user-gesture-required',
+        f'--user-agent="Placards Linux Client {__version__}"',
     ]
     if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
         args.append('--ignore-certificate-errors')
