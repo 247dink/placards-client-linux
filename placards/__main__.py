@@ -1,4 +1,5 @@
 import os
+import re
 import json
 import glob
 import shlex
@@ -35,6 +36,8 @@ STARTUP = [
 REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
+VNC_TIMEOUT=30
+PORT_PATTERN = re.compile(b'PORT=(\\d+)')
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -80,7 +83,7 @@ def get_addr():
     return s.getsockname()[0]
 
 
-def run_command(command):
+def run_command(command, stdout=subprocess.DEVNULL):
     cmd = shlex.split(command)
     bin = shutil.which(cmd[0])
     if not bin:
@@ -88,7 +91,7 @@ def run_command(command):
         return
     return subprocess.Popen(
         [bin, *cmd[1:]],
-        stdout=subprocess.DEVNULL,
+        stdout=stdout,
         stderr=subprocess.DEVNULL,
     )
 
@@ -139,6 +142,25 @@ def setup(profile_dir):
         exited_cleanly=True,
         exit_type='Normal',
     )
+
+
+def run_x11vnc():
+    'Run x11vnc and retrieve port'
+    p = run_command(
+        f'x11vnc -q -timeout {VNC_TIMEOUT}', stdout=subprocess.PIPE)
+
+    if not p or p.poll():
+        raise subprocess.CalledProcessError('Process died')
+
+    try:
+        line = p.stdout.readline()
+        LOGGER.error('Process out: %s', line)
+        m = PORT_PATTERN.match(line)
+        LOGGER.error('Match: %s', m)
+        return int(m.groups()[0])
+
+    except (AttributeError, IndexError) as e:
+        raise ValueError('Could not determine x11vnc port: %s', e.args[0])
 
 
 async def main():
@@ -204,11 +226,14 @@ async def main():
             run_command(REBOOT)
 
         elif message['command'] == 'vnc':
-            p = run_command('x11vnc')
-            host, port = get_addr(), 5900
-            if not p or p.poll():
-                return None
-            return {'host': host, 'port': port}
+            try:
+                port = run_x11vnc()
+
+            except Exception:
+                LOGGER.exception('Failure starting x11vnc')
+                return
+
+            return {'host': get_addr(), 'port': port}
 
     await page.exposeFunction('placardsServer', message_handler)
     LOGGER.info('placardsServer function exposed.')
