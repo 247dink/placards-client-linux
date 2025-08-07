@@ -4,6 +4,7 @@ import glob
 import shlex
 import shutil
 import tempfile
+import socket
 import subprocess
 import logging
 import asyncio
@@ -30,6 +31,7 @@ STARTUP = [
     'xset s off',
     'xset -dpms',
 ]
+REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
 
@@ -64,6 +66,31 @@ async def chrome(chrome_bin, profile_dir, debug=False):
     return browser, page
 
 
+def get_addr():
+    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+    s.settimeout(0)
+    try:
+        s.connect(('8.8.8.8', 1))
+
+    except Exception:
+        pass
+
+    return s.getsockname()[0]
+
+
+def run_command(command):
+    cmd = shlex.split(command)
+    bin = shutil.which(cmd[0])
+    if not bin:
+        LOGGER.warning('Could not find program %s', cmd[0])
+        return
+    return subprocess.Popen(
+        [bin, *cmd[1:]],
+        stdout=subprocess.DEVNULL,
+        stderr=subprocess.DEVNULL,
+    )
+
+
 def edit_json_file(path, **kwargs):
     "Change keys in .json file and save."
     try:
@@ -93,24 +120,16 @@ def setup(profile_dir):
 
     # Run startup commands to prepare X.
     for command in STARTUP:
-        cmd = shlex.split(command)
-        bin = shutil.which(cmd[0])
-        if not bin:
-            LOGGER.warning(f'Could not find program {cmd[0]}')
-            continue
-        LOGGER.debug('Running startup command', [bin, *cmd[1:]])
-        subprocess.Popen(
-            [bin, *cmd[1:]],
-            stdout=subprocess.DEVNULL,
-            stderr=subprocess.DEVNULL,
-        )
+        LOGGER.debug('Running startup command', command)
+        run_command(command)
 
     for fn in glob.glob('Singleton*', root_dir=profile_dir):
         try:
             os.remove(pathjoin(profile_dir, fn))
 
         except Exception:
-            LOGGER.warning(f'Could not delete Singleton file {fn}', exc_info=True)
+            LOGGER.warning(
+                'Could not delete Singleton file %s', fn, exc_info=True)
 
     # Clear away crash status from Chrome prefs.
     edit_json_file(
@@ -122,9 +141,12 @@ def setup(profile_dir):
 
 async def main():
     "Main entry point."
-    log_level_name = config.get('LOG_LEVEL', 'WARNING').upper()
+    debug = config.getbool('DEBUG', False)
+    log_level_name = config.get(
+        'LOG_LEVEL',
+        'INFO' if not debug else 'DEBUG'
+    ).upper()
     log_level = getattr(logging, log_level_name)
-    debug = (log_level_name == 'DEBUG')
     loading_url = f'file://{LOADING_HTML}'
 
     root = logging.getLogger()
@@ -139,7 +161,7 @@ async def main():
         profile_dir = config.PROFILE_DIR
 
     except ConfigError as e:
-        LOGGER.error(f'You must configure {e.args[0]} in config.ini!')
+        LOGGER.error('You must configure %s in config.ini!', e.args[0])
         return
 
     setup(profile_dir)
@@ -150,12 +172,15 @@ async def main():
     while True:
         try:
             async with aiohttp.ClientSession() as s:
-                await s.head(url, ssl=not config.getbool('IGNORE_CERTIFICATE_ERRORS', False))
+                await s.head(
+                    url,
+                    ssl=not config.getbool('IGNORE_CERTIFICATE_ERRORS', False)
+                )
             break
 
         except ClientError:
             await page.goto(loading_url)
-            LOGGER.warning(f'Error preloading url {url}')
+            LOGGER.warning('Error preloading url: %s', url)
             await asyncio.sleep(5.0)
 
     await asyncio.sleep(3.0)
@@ -167,8 +192,24 @@ async def main():
             break
 
         except PageError:
-            LOGGER.warning(f'Error loading url {url}')
+            LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
+
+    def message_handler(message):
+        LOGGER.info('Received placards command: %s', message['command'])
+
+        if message['command'] == 'reboot':
+            run_command(REBOOT)
+
+        elif message['command'] == 'vnc':
+            p = run_command('x11vnc')
+            host, port = get_addr(), 5900
+            if not p or p.poll():
+                return None
+            return {'host': host, 'port': port}
+
+    await page.exposeFunction('placardsServer', message_handler)
+    LOGGER.info('placardsServer function exposed.')
 
     try:
         # Once the page is loaded, wait for it to close.
