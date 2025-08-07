@@ -13,4 +13,6 @@ sudo -H -u placards bash -c "xauth add :0  MIT-MAGIC-COOKIE-1  ${XAUTH_COOKIE}"
 sudo -H -u placards \
     PROFILE_DIR=${PROFILE_DIR} \
     IGNORE_CERTIFICATE_ERRORS=${IGNORE_CERTIFICATE_ERRORS} \
+    DEBUG=true \
+    LOG_LEVEL=INFO \
     bash -c "placards"
