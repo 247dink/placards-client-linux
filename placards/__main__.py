@@ -44,7 +44,7 @@ async def chrome(chrome_bin, profile_dir, debug=False):
         '--start-fullscreen',
         '--no-default-browser-check',
         '--autoplay-policy=no-user-gesture-required',
-        '--user-agent="Placards Linux Client {__version__}"',
+        f'--user-agent="Placards Linux Client {__version__}"',
     ]
     if config.getbool('IGNORE_CERTIFICATE_ERRORS', False):
         args.append('--ignore-certificate-errors')
