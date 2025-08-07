@@ -204,7 +204,7 @@ async def main():
         elif message['command'] == 'vnc':
             p = run_command('x11vnc')
             host, port = get_addr(), 5900
-            if p and not p.poll():
+            if not p or p.poll():
                 return None
             return {'host': host, 'port': port}
 
