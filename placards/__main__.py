@@ -36,7 +36,7 @@ STARTUP = [
 REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
-VNC_TIMEOUT=30
+VNC_TIMEOUT = 30
 PORT_PATTERN = re.compile(b'PORT=(\\d+)')
 
 
