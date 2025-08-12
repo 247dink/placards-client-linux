@@ -1,4 +1,5 @@
 import re
+import os
 import shlex
 import shutil
 import socket
@@ -11,6 +12,28 @@ PORT_PATTERN = re.compile(b'PORT=(\\d+)')
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
+
+
+def file_path(s):
+    if os.path.isfile(s):
+        return s
+    else:
+        raise FileNotFoundError(s)
+
+
+def dir_path(s):
+    if os.path.isdir(s):
+        return s
+    else:
+        raise NotADirectoryError(s)
+
+
+def bin_path(s):
+    file_path(s)
+    if os.access(s, os.X_OK):
+        return s
+    else:
+        raise PermissionError(s)
 
 
 def get_addr():

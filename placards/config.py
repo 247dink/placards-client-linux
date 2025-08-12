@@ -56,15 +56,11 @@ class _ConfigModule(ModuleType):
             config = _read_config(config_path)
             setattr(self, '_config', config)
 
-        if name in os.environ:
-            value = os.getenv(name)
+        try:
+            value = config.get(_SECTION, name)
 
-        else:
-            try:
-                value = config.get(_SECTION, name)
-
-            except configparser.NoOptionError:
-                raise ConfigError(name)
+        except configparser.NoOptionError:
+            raise ConfigError(name)
 
         setattr(self, name, value)
         return value
@@ -77,6 +73,9 @@ class _ConfigModule(ModuleType):
             if default is _SENTINAL:
                 raise
             return default
+
+    def set(self, name, value):
+        setattr(self, name.upper(), value)
 
     def getint(self, name, default=_SENTINAL):
         return int(self.getfloat(name, default))

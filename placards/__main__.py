@@ -4,6 +4,7 @@ import glob
 import tempfile
 import logging
 import asyncio
+import argparse
 
 from os.path import dirname, join as pathjoin
 
@@ -15,7 +16,9 @@ from pyppeteer.errors import PageError
 from placards.__version__ import __version__
 from placards import config
 from placards.errors import ConfigError
-from placards.platform import get_addr, run_command, run_x11vnc
+from placards.platform import (
+    get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -120,11 +123,16 @@ async def main():
         'LOG_LEVEL',
         'INFO' if not debug else 'DEBUG'
     ).upper()
+    log_file_path = config.get('LOG_FILE', None)
     log_level = getattr(logging, log_level_name)
     loading_url = f'file://{LOADING_HTML}'
 
     root = logging.getLogger()
     root.addHandler(logging.StreamHandler())
+    if log_file_path:
+        root.addHandler(
+            logging.RotatingFileHandler(
+                log_file_path, maxBytes=(10 * (1024 ** 2)), backupCount=3))
     root.setLevel(log_level)
 
     LOGGER.debug('Loading web client...')
@@ -197,5 +205,39 @@ async def main():
         await browser.close()
 
 
+class EnvDefault(argparse.Action):
+    def __init__(self, env_var, required=True, default=None, **kwargs):
+        if env_var and env_var in os.environ:
+            default = os.environ[env_var]
+        if required and default:
+            required = False
+        super().__init__(default=default, required=required, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values)
+
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='Placards Linux Client')
+    parser.add_argument('-l', '--log-file', type=file_path)
+    parser.add_argument(
+        '-v', '--log-level',
+        choices=logging.getLevelNamesMapping().keys(),
+        action=EnvDefault, env_name='LOG_LEVEL')
+    parser.add_argument('-u', '--url', type=str)
+    parser.add_argument(
+        '-p', '--profile-dir',
+        type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
+    parser.add_argument(
+        '-c', '--chrome-bin-path',
+        type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
+
+    args = parser.parse_args()
+
+    for arg in ('log_file', 'log_level', 'url',
+                'profile_dir', 'chrome_bin_path'):
+        if not getattr(args, arg):
+            continue
+        config.set(arg.upper(), getattr(args, arg))
+
     asyncio.run(main())
