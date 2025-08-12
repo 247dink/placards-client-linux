@@ -1,12 +1,7 @@
 import os
-import re
 import json
 import glob
-import shlex
-import shutil
 import tempfile
-import socket
-import subprocess
 import logging
 import asyncio
 
@@ -20,6 +15,7 @@ from pyppeteer.errors import PageError
 from placards.__version__ import __version__
 from placards import config
 from placards.errors import ConfigError
+from placards.platform import get_addr, run_command, run_x11vnc
 
 
 LOGGER = logging.getLogger(__name__)
@@ -36,8 +32,6 @@ STARTUP = [
 REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
-VNC_TIMEOUT = 30
-PORT_PATTERN = re.compile(b'PORT=(\\d+)')
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -69,31 +63,6 @@ async def chrome(chrome_bin, profile_dir, debug=False):
     )
     page = (await browser.pages())[0]
     return browser, page
-
-
-def get_addr():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        s.connect(('8.8.8.8', 1))
-
-    except Exception:
-        pass
-
-    return s.getsockname()[0]
-
-
-def run_command(command, stdout=subprocess.DEVNULL):
-    cmd = shlex.split(command)
-    bin = shutil.which(cmd[0])
-    if not bin:
-        LOGGER.warning('Could not find program %s', cmd[0])
-        return
-    return subprocess.Popen(
-        [bin, *cmd[1:]],
-        stdout=stdout,
-        stderr=subprocess.DEVNULL,
-    )
 
 
 def edit_json_file(path, **kwargs):
@@ -142,25 +111,6 @@ def setup(profile_dir):
         exited_cleanly=True,
         exit_type='Normal',
     )
-
-
-def run_x11vnc():
-    'Run x11vnc and retrieve port'
-    p = run_command(
-        f'x11vnc -q -timeout {VNC_TIMEOUT}', stdout=subprocess.PIPE)
-
-    if not p or p.poll():
-        raise subprocess.CalledProcessError('Process died')
-
-    try:
-        line = p.stdout.readline()
-        LOGGER.error('Process out: %s', line)
-        m = PORT_PATTERN.match(line)
-        LOGGER.error('Match: %s', m)
-        return int(m.groups()[0])
-
-    except (AttributeError, IndexError) as e:
-        raise ValueError('Could not determine x11vnc port: %s', e.args[0])
 
 
 async def main():
