@@ -20,6 +20,10 @@ from pyppeteer.errors import PageError
 from placards.__version__ import __version__
 from placards import config
 from placards.errors import ConfigError
+from placards.platform import (
+    get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
+    get_hostname,
+)
 
 
 LOGGER = logging.getLogger(__name__)
@@ -144,23 +148,24 @@ def setup(profile_dir):
     )
 
 
-def run_x11vnc():
-    'Run x11vnc and retrieve port'
-    p = run_command(
-        f'x11vnc -q -timeout {VNC_TIMEOUT}', stdout=subprocess.PIPE)
+def message_handler(message):
+    LOGGER.info('Received placards command: %s', message['command'])
 
-    if not p or p.poll():
-        raise subprocess.CalledProcessError('Process died')
+    if message['command'] == 'reboot':
+        run_command(REBOOT)
 
-    try:
-        line = p.stdout.readline()
-        LOGGER.error('Process out: %s', line)
-        m = PORT_PATTERN.match(line)
-        LOGGER.error('Match: %s', m)
-        return int(m.groups()[0])
+    elif message['command'] == 'vnc':
+        try:
+            port = run_x11vnc()
 
-    except (AttributeError, IndexError) as e:
-        raise ValueError('Could not determine x11vnc port: %s', e.args[0])
+        except Exception:
+            LOGGER.exception('Failure starting x11vnc')
+            return
+
+        return {'host': get_addr(), 'port': port}
+
+    elif message['command'] == 'info':
+        return {'host': get_hostname(), 'addr': get_addr()}
 
 
 async def main():
@@ -218,22 +223,6 @@ async def main():
         except PageError:
             LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
-
-    def message_handler(message):
-        LOGGER.info('Received placards command: %s', message['command'])
-
-        if message['command'] == 'reboot':
-            run_command(REBOOT)
-
-        elif message['command'] == 'vnc':
-            try:
-                port = run_x11vnc()
-
-            except Exception:
-                LOGGER.exception('Failure starting x11vnc')
-                return
-
-            return {'host': get_addr(), 'port': port}
 
     await page.exposeFunction('placardsServer', message_handler)
     LOGGER.info('placardsServer function exposed.')
