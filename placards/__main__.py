@@ -165,7 +165,12 @@ def message_handler(message):
         return {'host': get_addr(), 'port': port}
 
     elif message['command'] == 'info':
-        return {'host': get_hostname(), 'addr': get_addr()}
+        return {
+            'hostname': get_hostname(),
+            'addr': get_addr(),
+            'version': __version__,
+            'type': 'Linux',
+        }
 
 
 async def main():
