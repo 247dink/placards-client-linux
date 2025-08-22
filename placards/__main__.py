@@ -188,7 +188,7 @@ async def main():
 
         except ClientError:
             await page.goto(loading_url)
-            LOGGER.warning('Error preloading url: %s', url)
+            LOGGER.warning('Error preloading url: %s', url, exc_info=True)
             await asyncio.sleep(5.0)
 
     await asyncio.sleep(3.0)
@@ -229,23 +229,27 @@ class EnvDefault(argparse.Action):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Placards Linux Client')
+    parser.add_argument('-d', '--debug', action=EnvDefault, env_var='DEBUG')
+    parser.add_argument(
+        '-i', '--ignore-certificate-errors',
+        action=EnvDefault, env_var='IGNORE_CERTIFICATE_ERRORS')
     parser.add_argument('-l', '--log-file', type=file_path)
     parser.add_argument(
         '-v', '--log-level',
         choices=logging.getLevelNamesMapping().keys(),
-        action=EnvDefault, env_name='LOG_LEVEL')
+        action=EnvDefault, env_var='LOG_LEVEL')
     parser.add_argument('-u', '--url', type=str)
     parser.add_argument(
         '-p', '--profile-dir',
         type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
     parser.add_argument(
         '-c', '--chrome-bin-path',
-        type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
+        required=False, type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
 
     args = parser.parse_args()
 
-    for arg in ('log_file', 'log_level', 'url',
-                'profile_dir', 'chrome_bin_path'):
+    for arg in ('debug', 'log_file', 'log_level', 'url',
+                'profile_dir', 'chrome_bin_path', 'ignore_certificate_errors'):
         if not getattr(args, arg):
             continue
         config.set(arg.upper(), getattr(args, arg))
