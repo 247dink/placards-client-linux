@@ -244,7 +244,9 @@ if __name__ == '__main__':
         type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
     parser.add_argument(
         '-c', '--chrome-bin-path',
-        required=False, type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
+        required=False, type=bin_path, action=EnvDefault,
+        env_var='CHROME_BIN_PATH',
+    )
 
     args = parser.parse_args()
 
