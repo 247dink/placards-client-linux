@@ -1,14 +1,10 @@
 import os
-import re
 import json
 import glob
-import shlex
-import shutil
 import tempfile
-import socket
-import subprocess
 import logging
 import asyncio
+import argparse
 
 from os.path import dirname, join as pathjoin
 
@@ -22,7 +18,10 @@ from placards import config
 from placards.errors import ConfigError
 from placards.platform import (
     get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
+<<<<<<< HEAD
     get_hostname,
+=======
+>>>>>>> 8ab95315d2c86c7c30a756ad55538e66e9e60635
 )
 
 
@@ -40,8 +39,6 @@ STARTUP = [
 REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
-VNC_TIMEOUT = 30
-PORT_PATTERN = re.compile(b'PORT=(\\d+)')
 
 
 async def chrome(chrome_bin, profile_dir, debug=False):
@@ -73,31 +70,6 @@ async def chrome(chrome_bin, profile_dir, debug=False):
     )
     page = (await browser.pages())[0]
     return browser, page
-
-
-def get_addr():
-    s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
-    s.settimeout(0)
-    try:
-        s.connect(('8.8.8.8', 1))
-
-    except Exception:
-        pass
-
-    return s.getsockname()[0]
-
-
-def run_command(command, stdout=subprocess.DEVNULL):
-    cmd = shlex.split(command)
-    bin = shutil.which(cmd[0])
-    if not bin:
-        LOGGER.warning('Could not find program %s', cmd[0])
-        return
-    return subprocess.Popen(
-        [bin, *cmd[1:]],
-        stdout=stdout,
-        stderr=subprocess.DEVNULL,
-    )
 
 
 def edit_json_file(path, **kwargs):
@@ -180,11 +152,16 @@ async def main():
         'LOG_LEVEL',
         'INFO' if not debug else 'DEBUG'
     ).upper()
+    log_file_path = config.get('LOG_FILE', None)
     log_level = getattr(logging, log_level_name)
     loading_url = f'file://{LOADING_HTML}'
 
     root = logging.getLogger()
     root.addHandler(logging.StreamHandler())
+    if log_file_path:
+        root.addHandler(
+            logging.RotatingFileHandler(
+                log_file_path, maxBytes=(10 * (1024 ** 2)), backupCount=3))
     root.setLevel(log_level)
 
     LOGGER.debug('Loading web client...')
@@ -241,5 +218,39 @@ async def main():
         await browser.close()
 
 
+class EnvDefault(argparse.Action):
+    def __init__(self, env_var, required=True, default=None, **kwargs):
+        if env_var and env_var in os.environ:
+            default = os.environ[env_var]
+        if required and default:
+            required = False
+        super().__init__(default=default, required=required, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values)
+
+
 if __name__ == '__main__':
+    parser = argparse.ArgumentParser(prog='Placards Linux Client')
+    parser.add_argument('-l', '--log-file', type=file_path)
+    parser.add_argument(
+        '-v', '--log-level',
+        choices=logging.getLevelNamesMapping().keys(),
+        action=EnvDefault, env_name='LOG_LEVEL')
+    parser.add_argument('-u', '--url', type=str)
+    parser.add_argument(
+        '-p', '--profile-dir',
+        type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
+    parser.add_argument(
+        '-c', '--chrome-bin-path',
+        type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
+
+    args = parser.parse_args()
+
+    for arg in ('log_file', 'log_level', 'url',
+                'profile_dir', 'chrome_bin_path'):
+        if not getattr(args, arg):
+            continue
+        config.set(arg.upper(), getattr(args, arg))
+
     asyncio.run(main())
