@@ -18,6 +18,7 @@ from placards import config
 from placards.errors import ConfigError
 from placards.platform import (
     get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
+    get_hostname,
 )
 
 
@@ -116,6 +117,31 @@ def setup(profile_dir):
     )
 
 
+def message_handler(message):
+    LOGGER.info('Received placards command: %s', message['command'])
+
+    if message['command'] == 'reboot':
+        run_command(REBOOT)
+
+    elif message['command'] == 'vnc':
+        try:
+            port = run_x11vnc()
+
+        except Exception:
+            LOGGER.exception('Failure starting x11vnc')
+            return
+
+        return {'host': get_addr(), 'port': port}
+
+    elif message['command'] == 'info':
+        return {
+            'hostname': get_hostname(),
+            'addr': get_addr(),
+            'version': __version__,
+            'type': 'Linux',
+        }
+
+
 async def main():
     "Main entry point."
     debug = config.getbool('DEBUG', False)
@@ -162,7 +188,7 @@ async def main():
 
         except ClientError:
             await page.goto(loading_url)
-            LOGGER.warning('Error preloading url: %s', url)
+            LOGGER.warning('Error preloading url: %s', url, exc_info=True)
             await asyncio.sleep(5.0)
 
     await asyncio.sleep(3.0)
@@ -176,22 +202,6 @@ async def main():
         except PageError:
             LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
-
-    def message_handler(message):
-        LOGGER.info('Received placards command: %s', message['command'])
-
-        if message['command'] == 'reboot':
-            run_command(REBOOT)
-
-        elif message['command'] == 'vnc':
-            try:
-                port = run_x11vnc()
-
-            except Exception:
-                LOGGER.exception('Failure starting x11vnc')
-                return
-
-            return {'host': get_addr(), 'port': port}
 
     await page.exposeFunction('placardsServer', message_handler)
     LOGGER.info('placardsServer function exposed.')
@@ -219,23 +229,29 @@ class EnvDefault(argparse.Action):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Placards Linux Client')
+    parser.add_argument('-d', '--debug', action=EnvDefault, env_var='DEBUG')
+    parser.add_argument(
+        '-i', '--ignore-certificate-errors',
+        action=EnvDefault, env_var='IGNORE_CERTIFICATE_ERRORS')
     parser.add_argument('-l', '--log-file', type=file_path)
     parser.add_argument(
         '-v', '--log-level',
         choices=logging.getLevelNamesMapping().keys(),
-        action=EnvDefault, env_name='LOG_LEVEL')
+        action=EnvDefault, env_var='LOG_LEVEL')
     parser.add_argument('-u', '--url', type=str)
     parser.add_argument(
         '-p', '--profile-dir',
         type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
     parser.add_argument(
         '-c', '--chrome-bin-path',
-        type=bin_path, action=EnvDefault, env_var='CHROME_BIN_PATH')
+        required=False, type=bin_path, action=EnvDefault,
+        env_var='CHROME_BIN_PATH',
+    )
 
     args = parser.parse_args()
 
-    for arg in ('log_file', 'log_level', 'url',
-                'profile_dir', 'chrome_bin_path'):
+    for arg in ('debug', 'log_file', 'log_level', 'url',
+                'profile_dir', 'chrome_bin_path', 'ignore_certificate_errors'):
         if not getattr(args, arg):
             continue
         config.set(arg.upper(), getattr(args, arg))

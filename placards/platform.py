@@ -78,3 +78,7 @@ def run_x11vnc():
 
     except (AttributeError, IndexError) as e:
         raise ValueError('Could not determine x11vnc port: %s', e.args[0])
+
+
+def get_hostname():
+    return socket.gethostname()
