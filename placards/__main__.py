@@ -18,10 +18,7 @@ from placards import config
 from placards.errors import ConfigError
 from placards.platform import (
     get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
-<<<<<<< HEAD
     get_hostname,
-=======
->>>>>>> 8ab95315d2c86c7c30a756ad55538e66e9e60635
 )
 
 
