@@ -240,19 +240,24 @@ class EnvDefault(argparse.Action):
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(prog='Placards Linux Client')
-    parser.add_argument('-d', '--debug', action=EnvDefault, env_var='DEBUG')
+    parser.add_argument(
+        '-d', '--debug', choices=['true', 'false'],
+        action=EnvDefault, env_var='DEBUG', required=False,
+    )
     parser.add_argument(
         '-i', '--ignore-certificate-errors',
-        action=EnvDefault, env_var='IGNORE_CERTIFICATE_ERRORS')
-    parser.add_argument('-l', '--log-file', type=file_path)
+        action=EnvDefault, env_var='IGNORE_CERTIFICATE_ERRORS', required=False)
+    parser.add_argument('-l', '--log-file', type=file_path, required=False)
     parser.add_argument(
         '-v', '--log-level',
         choices=getLogLevelNames(),
-        action=EnvDefault, env_var='LOG_LEVEL')
-    parser.add_argument('-u', '--url', type=str)
+        action=EnvDefault, env_var='LOG_LEVEL', required=False)
+    parser.add_argument('-u', '--url', type=str, required=False)
     parser.add_argument(
         '-p', '--profile-dir',
-        type=dir_path, action=EnvDefault, env_var='PROFILE_DIR')
+        type=dir_path, action=EnvDefault, env_var='PROFILE_DIR',
+        required=False,
+    )
     parser.add_argument(
         '-c', '--chrome-bin-path',
         required=False, type=bin_path, action=EnvDefault,
