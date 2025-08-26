@@ -38,6 +38,17 @@ PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
 
 
+def getLogLevelNames():
+    if callable(getattr(logging, 'getLevelNamesMapping', None)):
+        return logging.getLevelNamesMapping().keys()
+
+    return [
+        logging.getLevelName(x)
+        for x in range(1, 101)
+        if not logging.getLevelName(x).startswith('Level')
+    ]
+
+
 async def chrome(chrome_bin, profile_dir, debug=False):
     "Launch Chrome browser and navigate to placards server."
     args = [
@@ -236,7 +247,7 @@ if __name__ == '__main__':
     parser.add_argument('-l', '--log-file', type=file_path)
     parser.add_argument(
         '-v', '--log-level',
-        choices=logging.getLevelNamesMapping().keys(),
+        choices=getLogLevelNames(),
         action=EnvDefault, env_var='LOG_LEVEL')
     parser.add_argument('-u', '--url', type=str)
     parser.add_argument(
