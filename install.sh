@@ -51,9 +51,9 @@ EOF
 export PIP_BREAK_SYSTEM_PACKAGES=1
 
 if [ -f setup.py ]; then
-    sudo pip install .
+    sudo -E pip install .
 
 else
-    sudo pip install git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
+    sudo -E pip install git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
 
 fi
