@@ -48,10 +48,12 @@ EOF
 # NOTE: Old method
 # echo "python3 -m placards \&" > "${HOME}/.xinitrc"
 
+export PIP_BREAK_SYSTEM_PACKAGES=1
+
 if [ -f setup.py ]; then
-    sudo pip install --break-system-packages .
+    sudo pip install .
 
 else
-    sudo pip install --break-system-packages git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
+    sudo pip install git+https://github.com/247dink/placards-client-linux/@${BRANCH}#egg=placards
 
 fi
