@@ -41,7 +41,7 @@ cat > "${HOME}/.config/autostart/placards.desktop" << EOF
 [Desktop Entry]
 Type=Application
 Name=Placards
-Exec=python3 -m placards
+Exec=placards
 Terminal=false
 EOF
 

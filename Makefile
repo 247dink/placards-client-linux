@@ -34,7 +34,7 @@ package: .venv
 	pipenv run python3 -m build --wheel
 
 
-publish: .venv
+publish: package
 	pipenv run twine upload dist/*
 
 
