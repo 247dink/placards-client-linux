@@ -45,6 +45,11 @@ Exec=placards
 Terminal=false
 EOF
 
+# NOTE: Old method
+# echo "python3 -m placards \&" > "${HOME}/.xinitrc"
+
+export PIP_BREAK_SYSTEM_PACKAGES=1
+
 if [ -f setup.py ]; then
     sudo pip install .
 
