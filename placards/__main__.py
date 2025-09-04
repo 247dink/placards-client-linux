@@ -188,6 +188,9 @@ async def main():
     browser, page = await chrome(chrome_bin, profile_dir, debug)
     page.setDefaultNavigationTimeout(0)
 
+    await page.exposeFunction('placardsServer', message_handler)
+    LOGGER.info('placardsServer function exposed.')
+
     while True:
         try:
             async with aiohttp.ClientSession() as s:
@@ -213,9 +216,6 @@ async def main():
         except PageError:
             LOGGER.warning('Error loading url: %s', url)
             await asyncio.sleep(5.0)
-
-    await page.exposeFunction('placardsServer', message_handler)
-    LOGGER.info('placardsServer function exposed.')
 
     try:
         # Once the page is loaded, wait for it to close.
