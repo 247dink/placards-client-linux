@@ -5,8 +5,10 @@ import tempfile
 import logging
 import asyncio
 import argparse
+import signal
 
 from os.path import dirname, join as pathjoin
+from functools import partial
 
 import aiohttp
 from aiohttp.client_exceptions import ClientError
@@ -153,6 +155,18 @@ def message_handler(message):
         }
 
 
+class EnvDefault(argparse.Action):
+    def __init__(self, env_var, required=True, default=None, **kwargs):
+        if env_var and env_var in os.environ:
+            default = os.environ[env_var]
+        if required and default:
+            required = False
+        super().__init__(default=default, required=required, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        setattr(namespace, self.dest, values)
+
+
 async def main():
     "Main entry point."
     debug = config.getbool('DEBUG', False)
@@ -188,9 +202,18 @@ async def main():
     browser, page = await chrome(chrome_bin, profile_dir, debug)
     page.setDefaultNavigationTimeout(0)
 
+    # NOTE: Handle platform commands from web client.
     await page.exposeFunction('placardsServer', message_handler)
     LOGGER.info('placardsServer function exposed.')
 
+    # NOTE: Reload page on HUP signal.
+    loop = asyncio.get_event_loop()
+    loop.add_signal_handler(
+        signal.SIGHUP,
+        lambda: asyncio.create_task(page.reload()),
+    )
+
+    # NOTE: Show loading page while waiting for server.
     while True:
         try:
             async with aiohttp.ClientSession() as s:
@@ -207,6 +230,7 @@ async def main():
 
     await asyncio.sleep(3.0)
 
+    # NOTE: Load web app.
     while True:
         try:
             # We need this page to load, so we will keep trying until it works.
@@ -224,18 +248,6 @@ async def main():
 
     finally:
         await browser.close()
-
-
-class EnvDefault(argparse.Action):
-    def __init__(self, env_var, required=True, default=None, **kwargs):
-        if env_var and env_var in os.environ:
-            default = os.environ[env_var]
-        if required and default:
-            required = False
-        super().__init__(default=default, required=required, **kwargs)
-
-    def __call__(self, parser, namespace, values, option_string=None):
-        setattr(namespace, self.dest, values)
 
 
 if __name__ == '__main__':
