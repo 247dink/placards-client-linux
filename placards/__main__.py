@@ -8,7 +8,6 @@ import argparse
 import signal
 
 from os.path import dirname, join as pathjoin
-from functools import partial
 
 import aiohttp
 from aiohttp.client_exceptions import ClientError
