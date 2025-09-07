@@ -4,13 +4,12 @@ import shlex
 import shutil
 import socket
 import logging
-import random
 import subprocess
 
 
 VNC_TIMEOUT = 30
 PORT_PATTERN = re.compile(b'PORT=(\\d+)')
-REBOOT = 'shutdown -r +%s'
+REBOOT = 'shutdown -r now'
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -91,11 +90,8 @@ def get_hostname():
 
 
 def reboot():
-    # NOTE: Use a random delay to avoid a dogpile.
-    delay = random.randint(1, 10)
-    command = REBOOT % delay
-    p = run_command(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    p = run_command(REBOOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     LOGGER.debug('Reboot out: %s, err: %s', out, err)
     if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, command, err)
+        raise subprocess.CalledProcessError(p.returncode, REBOOT, err)
