@@ -14,5 +14,5 @@ sudo -H -u placards \
     PROFILE_DIR=${PROFILE_DIR} \
     IGNORE_CERTIFICATE_ERRORS=${IGNORE_CERTIFICATE_ERRORS} \
     DEBUG=true \
-    LOG_LEVEL=INFO \
+    LOG_LEVEL=DEBUG \
     bash -c "placards"
