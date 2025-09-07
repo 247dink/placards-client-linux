@@ -10,7 +10,7 @@ import subprocess
 
 VNC_TIMEOUT = 30
 PORT_PATTERN = re.compile(b'PORT=(\\d+)')
-REBOOT = 'shutdown -r +1'
+REBOOT = 'shutdown -r +%s'
 
 LOGGER = logging.getLogger(__name__)
 LOGGER.addHandler(logging.NullHandler())
@@ -93,7 +93,7 @@ def get_hostname():
 def reboot():
     # NOTE: Use a random delay to avoid a dogpile.
     delay = random.randint(1, 10)
-    command = f'{REBOOT} +{delay}'
+    command = REBOOT % delay
     p = run_command(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     LOGGER.debug('Reboot out: %s, err: %s', out, err)
