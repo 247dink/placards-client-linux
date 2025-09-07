@@ -4,6 +4,7 @@ import shlex
 import shutil
 import socket
 import logging
+import random
 import subprocess
 
 
@@ -90,7 +91,9 @@ def get_hostname():
 
 
 def reboot():
-    p = run_command(REBOOT, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+    delay = random.randint(1, 10)
+    command = f'{REBOOT} +{delay}'
+    p = run_command(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
     out, err = p.communicate()
     LOGGER.debug('Reboot out: %s, err: %s', out, err)
     if p.returncode != 0:
