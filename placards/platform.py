@@ -91,6 +91,7 @@ def get_hostname():
 
 
 def reboot():
+    # NOTE: Use a random delay to avoid a dogpile.
     delay = random.randint(1, 10)
     command = f'{REBOOT} +{delay}'
     p = run_command(command, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
