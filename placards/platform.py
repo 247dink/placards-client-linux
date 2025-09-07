@@ -98,4 +98,4 @@ def reboot():
     out, err = p.communicate()
     LOGGER.debug('Reboot out: %s, err: %s', out, err)
     if p.returncode != 0:
-        raise subprocess.CalledProcessError(p.returncode, REBOOT, err)
+        raise subprocess.CalledProcessError(p.returncode, command, err)
