@@ -19,7 +19,7 @@ from placards import config
 from placards.errors import ConfigError
 from placards.platform import (
     get_addr, run_command, run_x11vnc, file_path, dir_path, bin_path,
-    get_hostname,
+    get_hostname, reboot,
 )
 
 
@@ -34,7 +34,6 @@ STARTUP = [
     'xset s off',
     'xset -dpms',
 ]
-REBOOT = 'reboot now'
 PREFERENCES_PATH = 'Default/Preferences'
 LOADING_HTML = pathjoin(dirname(__file__), 'html/index.html')
 
@@ -133,24 +132,37 @@ def message_handler(message):
     LOGGER.info('Received placards command: %s', message['command'])
 
     if message['command'] == 'reboot':
-        run_command(REBOOT)
+        try:
+            reboot()
+
+        except Exception as e:
+            LOGGER.exception('Failed to reboot')
+            return {'result': None, 'error': str(e)}
+
+        return {'result': True, 'error': None}
 
     elif message['command'] == 'vnc':
         try:
             port = run_x11vnc()
 
-        except Exception:
+        except Exception as e:
             LOGGER.exception('Failure starting x11vnc')
-            return
+            return {'result': None, 'error': str(e)}
 
-        return {'host': get_addr(), 'port': port}
+        return {
+            'result': {'host': get_addr(), 'port': port},
+            'error': None,
+        }
 
     elif message['command'] == 'info':
         return {
-            'hostname': get_hostname(),
-            'addr': get_addr(),
-            'version': __version__,
-            'type': 'Linux',
+            'result': {
+                'hostname': get_hostname(),
+                'addr': get_addr(),
+                'version': __version__,
+                'type': 'Linux',
+            },
+            'error': None,
         }
 
 
